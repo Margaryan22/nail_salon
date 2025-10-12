@@ -5,18 +5,23 @@
 
 package Frolov_back.NAILS_WEB_APP.controller;
 
+
 import Frolov_back.NAILS_WEB_APP.service.UserService;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto; // DTO для регистрации
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserResponseDto; // DTO для ответа
+import Frolov_back.NAILS_WEB_APP.service.DTO.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/users") // Версионирование API
+@RequestMapping("/api/v1/users")
+@Tag(name = "User Management", description = "API для управления пользователями")
 public class UserController {
 
     private final UserService userService;
@@ -25,61 +30,137 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register/user")
-    public ResponseEntity<UserResponseDto> registerUser(@RequestBody UserRegistrationRequestDto requestDto) {
-        // Тут должна быть валидация requestDto
-        //userService.registerNewUser() должен возвращать Optional<UserResponseDto>
-        return userService.registerNewUser(requestDto)
-                .map(userDto -> ResponseEntity.status(HttpStatus.CREATED).body(userDto))
-                .orElseGet(() -> ResponseEntity.badRequest().build()); // Например, если email уже занят
-    }
+    // === ТОЛЬКО endpoints для управления существующими пользователями ===
 
-    // ... другие эндпоинты для пользователей
-
-    @PostMapping("/register/admin")
-    public ResponseEntity<?> registerAdmin(@RequestBody UserRegistrationRequestDto requestDto) {
-        // Базовая валидация
-        if (requestDto.getEmail() == null || requestDto.getEmail().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Email is required");
-        }
-        if (requestDto.getPassword() == null || requestDto.getPassword().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Password is required");
-        }
-        if (requestDto.getFirstName() == null || requestDto.getFirstName().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("First name is required");
-        }
-        if (requestDto.getLastName() == null || requestDto.getLastName().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Last name is required");
-        }
-
-        Optional<UserResponseDto> result = userService.registerNewUser(requestDto);
-
-        if (result.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(result.get());
-        } else {
-            return ResponseEntity.badRequest().body("User with this email already exists or invalid data");
-        }
-    }
-
-    // GET - Получить всех пользователей
+    // ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕЙ
+    @Operation(summary = "Получить всех пользователей")
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         List<UserResponseDto> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
-    // GET - Получить пользователя по ID
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
-        // Пока заглушка - можно реализовать позже
-        return ResponseEntity.notFound().build();
+    @Operation(summary = "Получить пользователя по ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Пользователь найден"),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден")
+    })
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUserById(@PathVariable Long userId) {
+        return userService.getUserById(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET - Поиск пользователя по email
+    @GetMapping("/{userId}/detailed")
+    public ResponseEntity<?> getUserWithProfile(@PathVariable Long userId) {
+        return userService.getUserWithProfile(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<UserResponseDto>> getUsersByRole(@PathVariable String role) {
+        List<UserResponseDto> users = userService.getUsersByRole(role);
+        return ResponseEntity.ok(users);
+    }
+
+    @Operation(summary = "Поиск пользователей")
     @GetMapping("/search")
-    public ResponseEntity<UserResponseDto> getUserByEmail(@RequestParam String email) {
-        // Пока заглушка - можно реализовать позже
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<List<UserResponseDto>> searchUsers(
+            @Parameter(description = "Email для поиска") @RequestParam(required = false)  String email,
+            @Parameter(description = "Имя для поиска") @RequestParam(required = false) String firstName,
+            @Parameter(description = "Фамилия для поиска") @RequestParam(required = false) String lastName,
+            @Parameter(description = "Телефон для поиска") @RequestParam(required = false) String phone,
+            @Parameter(description = "Роль для фильтрации") @RequestParam(required = false) String role) {
+
+        UserSearchCriteriaDto criteria = new UserSearchCriteriaDto();
+        criteria.setEmail(email);
+        criteria.setFirstName(firstName);
+        criteria.setLastName(lastName);
+        criteria.setPhone(phone);
+        criteria.setRole(role);
+
+        List<UserResponseDto> users = userService.searchUsers(criteria);
+        return ResponseEntity.ok(users);
     }
 
+    // ОБНОВЛЕНИЕ
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userId,
+                                        @RequestBody UserUpdateRequestDto requestDto) {
+        // Простая валидация для обновления
+        if (requestDto.getFirstName() == null || requestDto.getFirstName().trim().isEmpty() ||
+                requestDto.getLastName() == null || requestDto.getLastName().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Имя и фамилия обязательны для заполнения");
+        }
+
+        return userService.updateUser(userId, requestDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{userId}/client-profile")
+    public ResponseEntity<?> updateClientProfile(@PathVariable Long userId,
+                                                 @RequestBody ClientProfileDto profileDto) {
+        return userService.updateClientProfile(userId, profileDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{userId}/master-profile")
+    public ResponseEntity<?> updateMasterProfile(@PathVariable Long userId,
+                                                 @RequestBody MasterProfileDto profileDto) {
+        return userService.updateMasterProfile(userId, profileDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // АДМИНСКИЕ ФУНКЦИИ
+    @GetMapping("/admins")
+    public ResponseEntity<List<UserResponseDto>> getAllAdmins() {
+        List<UserResponseDto> admins = userService.getAllAdmins();
+        return ResponseEntity.ok(admins);
+    }
+
+    @PostMapping("/{userId}/promote-to-super-admin")
+    public ResponseEntity<?> promoteToSuperAdmin(@PathVariable Long userId) {
+        return userService.promoteToSuperAdmin(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{userId}/demote-to-regular-admin")
+    public ResponseEntity<?> demoteToRegularAdmin(@PathVariable Long userId) {
+        return userService.demoteToRegularAdmin(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{userId}/is-super-admin")
+    public ResponseEntity<Boolean> isSuperAdmin(@PathVariable Long userId) {
+        boolean isSuperAdmin = userService.isSuperAdmin(userId);
+        return ResponseEntity.ok(isSuperAdmin);
+    }
+
+    // УПРАВЛЕНИЕ АКТИВНОСТЬЮ
+    @PostMapping("/{userId}/deactivate")
+    public ResponseEntity<?> deactivateUser(@PathVariable Long userId) {
+        boolean success = userService.deactivateUser(userId);
+        if (success) {
+            return ResponseEntity.ok("Пользователь деактивирован");
+        } else {
+            return ResponseEntity.badRequest().body("Не удалось деактивировать пользователя");
+        }
+    }
+
+    @PostMapping("/{userId}/activate")
+    public ResponseEntity<?> activateUser(@PathVariable Long userId) {
+        boolean success = userService.activateUser(userId);
+        if (success) {
+            return ResponseEntity.ok("Пользователь активирован");
+        } else {
+            return ResponseEntity.badRequest().body("Не удалось активировать пользователя");
+        }
+    }
 }

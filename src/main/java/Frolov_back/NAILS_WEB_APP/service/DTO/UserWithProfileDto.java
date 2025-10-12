@@ -2,17 +2,20 @@ package Frolov_back.NAILS_WEB_APP.service.DTO;
 
 import java.time.LocalDateTime;
 
-// --- DTO для ответа с информацией о пользователе ---
-
-public class UserResponseDto {
+public class UserWithProfileDto {
+    // Основная информация пользователя
     private Long userId;
     private String email;
     private String firstName;
     private String lastName;
     private String phone;
     private LocalDateTime createdAt;
-    private String userType; // "ADMIN", "MASTER", "CLIENT"
-    private String role; // Из enum UserRoleType
+    private String role;
+
+    // Профиль (только один будет заполнен)
+    private AdminProfileDto adminProfile;
+    private ClientProfileDto clientProfile;
+    private MasterProfileDto masterProfile;
 
     // Геттеры и сеттеры
     public Long getUserId() { return userId; }
@@ -27,8 +30,12 @@ public class UserResponseDto {
     public void setPhone(String phone) { this.phone = phone; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public String getUserType() { return userType; }
-    public void setUserType(String userType) { this.userType = userType; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public AdminProfileDto getAdminProfile() { return adminProfile; }
+    public void setAdminProfile(AdminProfileDto adminProfile) { this.adminProfile = adminProfile; }
+    public ClientProfileDto getClientProfile() { return clientProfile; }
+    public void setClientProfile(ClientProfileDto clientProfile) { this.clientProfile = clientProfile; }
+    public MasterProfileDto getMasterProfile() { return masterProfile; }
+    public void setMasterProfile(MasterProfileDto masterProfile) { this.masterProfile = masterProfile; }
 }
