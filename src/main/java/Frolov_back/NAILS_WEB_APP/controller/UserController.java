@@ -12,7 +12,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
-@Tag(name = "User Management", description = "API для управления пользователями")
+@Tag(name = "2. Управление пользователями", description = "API для работы с пользователями (требует аутентификации)")
 public class UserController {
 
     private final UserService userService;
@@ -34,7 +36,15 @@ public class UserController {
     // === ТОЛЬКО endpoints для управления существующими пользователями ===
 
     // ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕЙ
-    @Operation(summary = "Получить информацию о текущем пользователе")
+    @Operation(
+            summary = "👤 Получить информацию о текущем пользователе",
+            description = "Возвращает данные пользователя по JWT токену",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "✅ Данные пользователя"),
+            @ApiResponse(responseCode = "401", description = "❌ Пользователь не аутентифицирован")
+    })
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -47,7 +57,11 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Получить всех пользователей")
+    @Operation(
+            summary = "📋 Получить всех пользователей",
+            description = "Возвращает список всех пользователей системы",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         List<UserResponseDto> users = userService.getAllUsers();
@@ -79,7 +93,11 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @Operation(summary = "Поиск пользователей")
+    @Operation(
+            summary = "🔍 Поиск пользователей",
+            description = "Поиск и фильтрация пользователей по различным критериям",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @GetMapping("/search")
     public ResponseEntity<List<UserResponseDto>> searchUsers(
             @Parameter(description = "Email для поиска") @RequestParam(required = false)  String email,
@@ -100,9 +118,15 @@ public class UserController {
     }
 
     // ОБНОВЛЕНИЕ
+    @Operation(
+            summary = "🔄 Обновить данные пользователя",
+            description = "Обновление основной информации пользователя",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @PutMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@PathVariable Long userId,
-                                        @RequestBody UserUpdateRequestDto requestDto) {
+    public ResponseEntity<?> updateUser(
+            @Parameter(description = "ID пользователя", required = true) @PathVariable Long userId,
+            @RequestBody UserUpdateRequestDto requestDto) {
         // Простая валидация для обновления
         if (requestDto.getFirstName() == null || requestDto.getFirstName().trim().isEmpty() ||
                 requestDto.getLastName() == null || requestDto.getLastName().trim().isEmpty()) {

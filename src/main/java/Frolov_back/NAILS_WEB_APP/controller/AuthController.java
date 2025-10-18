@@ -4,6 +4,11 @@ import Frolov_back.NAILS_WEB_APP.service.impl.AuthenticationService;
 import Frolov_back.NAILS_WEB_APP.service.DTO.JwtResponse;
 import Frolov_back.NAILS_WEB_APP.service.DTO.LoginRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +27,54 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
 
-    @Operation(summary = "Аутентификация пользователя")
+    @Operation(
+            summary = "🔐 Аутентификация пользователя",
+            description = """
+            ### Вход в систему для получения JWT токена
+            - Проверяет email и пароль
+            - Возвращает access и refresh токены
+            - Токен действителен 24 часа
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "✅ Успешная аутентификация",
+                    content = @Content(schema = @Schema(implementation = JwtResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "❌ Неверные учетные данные",
+                    content = @Content(examples = @ExampleObject(value = "{\"error\": \"Invalid credentials\"}"))
+            )
+    })
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<JwtResponse> login(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Данные для входа",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = LoginRequest.class),
+                            examples = @ExampleObject(
+                                    name = "Пример запроса",
+                                    value = """
+                            {
+                                "email": "client@example.com",
+                                "password": "password123"
+                            }
+                            """
+                            )
+                    )
+            )
+            @RequestBody LoginRequest loginRequest) {
         JwtResponse jwtResponse = authenticationService.authenticate(loginRequest);
         return ResponseEntity.ok(jwtResponse);
     }
 
-    @Operation(summary = "Обновление access token")
+    @Operation(
+            summary = "🔄 Обновление access токена",
+            description = "Используйте refresh token для получения нового access token"
+    )
     @PostMapping("/refresh-token")
     public ResponseEntity<JwtResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         JwtResponse jwtResponse = authenticationService.refreshToken(request.getRefreshToken());

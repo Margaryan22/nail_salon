@@ -5,7 +5,9 @@ import Frolov_back.NAILS_WEB_APP.service.UserValidationService;
 import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto;
 import Frolov_back.NAILS_WEB_APP.service.DTO.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,23 +36,75 @@ public class RegistrationController {
      * Универсальный endpoint для регистрации пользователей любого типа
      */
     @Operation(
-            summary = "Регистрация пользователя",
-            description = "Регистрирует нового пользователя указанного типа (ADMIN, CLIENT, MASTER)"
+            summary = "📝 Регистрация нового пользователя",
+            description = """
+            ### Создание учетной записи пользователя
+            - Поддерживает регистрацию CLIENT, MASTER, ADMIN
+            - Пароль автоматически хешируется
+            - Email должен быть уникальным
+            """
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Пользователь успешно зарегистрирован"),
-            @ApiResponse(responseCode = "400", description = "Ошибка валидации данных"),
-            @ApiResponse(responseCode = "409", description = "Пользователь с таким email уже существует")
+            @ApiResponse(responseCode = "201", description = "✅ Пользователь успешно зарегистрирован"),
+            @ApiResponse(responseCode = "400", description = "❌ Ошибка валидации данных"),
+            @ApiResponse(responseCode = "409", description = "❌ Пользователь с таким email уже существует")
     })
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Данные для регистрации",
                     required = true,
-                    content = @Content(schema = @Schema(implementation = UserRegistrationRequestDto.class))
+                    content = @Content(
+                            schema = @Schema(implementation = UserRegistrationRequestDto.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "Регистрация клиента",
+                                            value = """
+                                {
+                                    "email": "client@example.com",
+                                    "password": "password123",
+                                    "firstName": "Мария",
+                                    "lastName": "Клиентова",
+                                    "phone": "+79991234567",
+                                    "role": "CLIENT",
+                                    "birthdate": "1990-05-15"
+                                }
+                                """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Регистрация мастера",
+                                            value = """
+                                {
+                                    "email": "master@salon.com",
+                                    "password": "password123",
+                                    "firstName": "Анна",
+                                    "lastName": "Мастерова",
+                                    "phone": "+79998765432",
+                                    "role": "MASTER",
+                                    "specialization": "Ногтевой сервис",
+                                    "workExperience": 3,
+                                    "description": "Опытный мастер"
+                                }
+                                """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Регистрация администратора",
+                                            value = """
+                                {
+                                    "email": "admin@salon.com",
+                                    "password": "password123",
+                                    "firstName": "Андрей",
+                                    "lastName": "Админов",
+                                    "phone": "+79991112233",
+                                    "role": "ADMIN",
+                                    "permissionsLevel": 1
+                                }
+                                """
+                                    )
+                            }
+                    )
             )
-            @RequestBody UserRegistrationRequestDto requestDto
-    ) {
+            @RequestBody UserRegistrationRequestDto requestDto) {
         // Валидация запроса
         UserValidationService.ValidationResult validation = validationService.validateRegistration(requestDto);
         if (!validation.isValid()) {
@@ -94,7 +148,11 @@ public class RegistrationController {
     /**
      * Получить список поддерживаемых ролей для регистрации
      */
-    @Operation(summary = "Получить поддерживаемые роли")
+    @Operation(
+            summary = "📋 Получить список поддерживаемых ролей",
+            description = "Возвращает все доступные для регистрации роли пользователей"
+    )
+    @ApiResponse(responseCode = "200", description = "Список ролей")
     @GetMapping("/supported-roles")
     public ResponseEntity<?> getSupportedRoles() {
         var supportedRoles = registrationServiceFactory.getSupportedRoles();
@@ -107,9 +165,14 @@ public class RegistrationController {
     /**
      * Проверить доступность email
      */
-    @Operation(summary = "Проверить доступность email")
+    @Operation(
+            summary = "📧 Проверить доступность email",
+            description = "Проверяет не занят ли email другим пользователем"
+    )
     @GetMapping("/check-email")
-    public ResponseEntity<?> checkEmailAvailability(@RequestParam String email) {
+    public ResponseEntity<?> checkEmailAvailability(
+            @Parameter(description = "Email для проверки", required = true, example = "user@example.com")
+            @RequestParam String email) {
         boolean isAvailable = !validationService.isEmailTaken(email);
         return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -123,7 +186,9 @@ public class RegistrationController {
      */
     @Operation(summary = "Проверить доступность телефона")
     @GetMapping("/check-phone")
-    public ResponseEntity<?> checkPhoneAvailability(@RequestParam String phone) {
+    public ResponseEntity<?> checkPhoneAvailability(
+            @Parameter(description = "Телефон для проверки", required = true, example = "+00000000000")
+            @RequestParam String phone) {
         boolean isAvailable = !validationService.isPhoneTaken(phone);
         return ResponseEntity.ok(Map.of(
                 "success", true,
