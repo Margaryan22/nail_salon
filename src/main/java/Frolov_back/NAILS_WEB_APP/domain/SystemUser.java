@@ -1,13 +1,19 @@
 package Frolov_back.NAILS_WEB_APP.domain;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
 @Table(name = "system_users")
-public class SystemUser {
+public class SystemUser implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
@@ -93,8 +99,42 @@ public class SystemUser {
     // Конструкторы, геттеры, сеттеры
     public SystemUser() {}
 
-    // ... геттеры и сеттеры
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    }
 
+    @Override
+    public String getPassword() {
+        return passwordHash; // Spring Security будет использовать это поле
+    }
+
+    @Override
+    public String getUsername() {
+        return email; // Spring Security будет использовать email как username
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // ... геттеры и сеттеры
 
     public Long getUserId() {
         return userId;
@@ -176,9 +216,7 @@ public class SystemUser {
         this.clientProfile = clientProfile;
     }
 
-    public MasterProfile getMasterProfile() {
-        return masterProfile;
-    }
+    public MasterProfile getMasterProfile() { return masterProfile; }
 
     public void setMasterProfile(MasterProfile masterProfile) {
         this.masterProfile = masterProfile;

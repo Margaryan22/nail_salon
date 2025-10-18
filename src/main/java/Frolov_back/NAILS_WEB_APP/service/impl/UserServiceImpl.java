@@ -56,6 +56,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<UserResponseDto> getCurrentUser(String email) {
+        return systemUserRepository.findByEmail(email)
+                .map(this::convertToDto);
+    }
+
+    @Override
     public List<UserResponseDto> getAllUsers() {
         return systemUserRepository.findAll().stream()
                 .map(this::convertToDto)

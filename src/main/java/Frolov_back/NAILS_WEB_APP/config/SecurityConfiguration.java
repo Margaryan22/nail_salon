@@ -1,5 +1,13 @@
 package Frolov_back.NAILS_WEB_APP.config;
 
+
+/*
+* TODO: // В контроллерах добавляем аннотации
+*@PreAuthorize("hasRole('ADMIN')") // Только для админов
+*@PreAuthorize("hasRole('MASTER')") // Только для мастеров
+*@PreAuthorize("hasRole('CLIENT')") // Только для клиентов
+*@PreAuthorize("hasAnyRole('ADMIN', 'MASTER')") // Для админов и мастеров
+* */
 import Frolov_back.NAILS_WEB_APP.security.JwtAuthenticationFilter;
 import Frolov_back.NAILS_WEB_APP.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -30,18 +38,19 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/users/register/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/v1/auth/**").permitAll()
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    .requestMatchers("/api/v1/users/register/**").permitAll()
+//                    .anyRequest().authenticated() //TODO: А ЭТУ ВЕРНУТЬ
+                    .anyRequest().permitAll() // РАЗРЕШАЕМ ВСЕ ЗАПРОСЫ //TODO: УБРАТЬ ЭТУ СТРОКУ (СЕЙЧАС ЭТО ВРЕМЕННОЕ РЕШЕНИЕ)
+            )
+            .sessionManagement(session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

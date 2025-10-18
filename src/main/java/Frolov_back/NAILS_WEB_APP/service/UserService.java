@@ -28,6 +28,7 @@ public interface UserService {
     Optional<UserResponseDto> updateUser(Long userId, UserUpdateRequestDto requestDto);
     Optional<UserResponseDto> updateClientProfile(Long userId, ClientProfileDto profileDto);
     Optional<UserResponseDto> updateMasterProfile(Long userId, MasterProfileDto profileDto);
+    Optional<UserResponseDto> getCurrentUser(String email);
 
     // === Админские функции (ОСТАВЛЯЕМ) ===
     List<UserResponseDto> getAllAdmins();

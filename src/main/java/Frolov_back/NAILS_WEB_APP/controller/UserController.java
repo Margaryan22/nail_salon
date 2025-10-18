@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,19 @@ public class UserController {
     // === ТОЛЬКО endpoints для управления существующими пользователями ===
 
     // ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЕЙ
+    @Operation(summary = "Получить информацию о текущем пользователе")
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Пользователь не аутентифицирован");
+        }
+
+        String email = authentication.getName();
+        return userService.getCurrentUser(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @Operation(summary = "Получить всех пользователей")
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {

@@ -5,22 +5,26 @@ import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
 import Frolov_back.NAILS_WEB_APP.domain.UserRoleType;
 import Frolov_back.NAILS_WEB_APP.repository.AdminProfileRepository;
 import Frolov_back.NAILS_WEB_APP.repository.SystemUserRepository;
+import Frolov_back.NAILS_WEB_APP.service.BaseRegistrationService;
 import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto;
 import Frolov_back.NAILS_WEB_APP.service.DTO.UserResponseDto;
 import Frolov_back.NAILS_WEB_APP.service.RegistrationService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
-public class AdminRegistrationService implements RegistrationService {
+public class AdminRegistrationService extends BaseRegistrationService implements RegistrationService {
 
     private final SystemUserRepository systemUserRepository;
     private final AdminProfileRepository adminProfileRepository;
 
     public AdminRegistrationService(SystemUserRepository systemUserRepository,
-                                    AdminProfileRepository adminProfileRepository) {
+                                    AdminProfileRepository adminProfileRepository,
+                                    PasswordEncoder passwordEncoder) {
+        super(passwordEncoder);
         this.systemUserRepository = systemUserRepository;
         this.adminProfileRepository = adminProfileRepository;
     }
@@ -28,7 +32,7 @@ public class AdminRegistrationService implements RegistrationService {
     @Override
     @Transactional
     public UserResponseDto register(UserRegistrationRequestDto requestDto) {
-        // Создаем базового пользователя
+        // Создаем базового пользователя (пароль уже хешируется в базовом классе)
         SystemUser newUser = createBasicUser(requestDto);
         newUser.setRole(UserRoleType.ADMIN);
 
@@ -67,17 +71,6 @@ public class AdminRegistrationService implements RegistrationService {
         }
 
         return true;
-    }
-
-    private SystemUser createBasicUser(UserRegistrationRequestDto requestDto) {
-        SystemUser user = new SystemUser();
-        user.setEmail(requestDto.getEmail().trim().toLowerCase());
-        user.setPasswordHash(requestDto.getPassword()); // TODO: добавить хеширование
-        user.setFirstName(requestDto.getFirstName().trim());
-        user.setLastName(requestDto.getLastName().trim());
-        user.setPhone(requestDto.getPhone() != null ? requestDto.getPhone().trim() : null);
-        user.setCreatedAt(LocalDateTime.now());
-        return user;
     }
 
     private UserResponseDto convertToDto(SystemUser user) {

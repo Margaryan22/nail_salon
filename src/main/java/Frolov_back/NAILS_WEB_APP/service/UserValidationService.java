@@ -27,6 +27,10 @@ public class UserValidationService {
         List<String> errors = new ArrayList<>();
 
         // Базовая валидация обязательных полей
+        if (!validatePassword(requestDto.getPassword())) {
+            errors.add("Пароль должен содержать минимум 6 символов");
+        }
+
         if (requestDto.getEmail() == null || requestDto.getEmail().trim().isEmpty()) {
             errors.add("Email обязателен для заполнения");
         }
@@ -74,6 +78,26 @@ public class UserValidationService {
         return new ValidationResult(errors.isEmpty(), errors);
     }
 
+    /**
+     * Валидация пароля
+     */
+    public boolean validatePassword(String password) {
+        if (password == null || password.trim().isEmpty()) {
+            return false;
+        }
+
+        // Минимальные требования к паролю
+        if (password.length() < 6) {
+            return false;
+        }
+
+        // Можно добавить дополнительные проверки:
+        // - наличие цифр
+        // - наличие букв в разных регистрах
+        // - специальные символы
+
+        return true;
+    }
 
     /**
      * Проверяет занят ли email
