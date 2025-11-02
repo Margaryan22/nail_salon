@@ -1,14 +1,14 @@
 package Frolov_back.NAILS_WEB_APP.service.DTO;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 // --- DTO для запроса регистрации ---
 import Frolov_back.NAILS_WEB_APP.domain.UserRoleType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
-import java.time.LocalDate;
 @Schema(description = "Запрос на регистрацию пользователя")
+@Data
 public class UserRegistrationRequestDto {
     @Schema(description = "Email пользователя", example = "user@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
@@ -36,41 +36,4 @@ public class UserRegistrationRequestDto {
     private String photoUrl; // Для мастера
     @Schema(description = "Уровень прав (для администратора)", example = "1")
     private Integer permissionsLevel; // Для админа
-
-    // Геттеры и сеттеры
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public UserRoleType getRole() { return role; }
-    public void setRole(UserRoleType role) { this.role = role; }
-
-    public LocalDate getBirthdate() { return birthdate; }
-    public void setBirthdate(LocalDate birthdate) { this.birthdate = birthdate; }
-
-    public String getSpecialization() { return specialization; }
-    public void setSpecialization(String specialization) { this.specialization = specialization; }
-
-    public Integer getWorkExperience() { return workExperience; }
-    public void setWorkExperience(Integer workExperience) { this.workExperience = workExperience; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public String getPhotoUrl() { return photoUrl; }
-    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
-
-    public Integer getPermissionsLevel() { return permissionsLevel; }
-    public void setPermissionsLevel(Integer permissionsLevel) { this.permissionsLevel = permissionsLevel; }
 }

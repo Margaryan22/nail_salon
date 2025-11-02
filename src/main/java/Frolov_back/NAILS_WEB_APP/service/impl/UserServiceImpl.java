@@ -190,9 +190,7 @@ public class UserServiceImpl implements UserService {
                     masterProfileRepository.save(profile);
                     return true;
                 })
-                .orElseGet(() -> {
-                    return false;
-                });
+                .orElseGet(() -> false);
     }
 
     @Override

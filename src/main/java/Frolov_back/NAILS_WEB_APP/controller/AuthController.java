@@ -1,6 +1,6 @@
 package Frolov_back.NAILS_WEB_APP.controller;
 
-import Frolov_back.NAILS_WEB_APP.service.impl.AuthenticationService;
+import Frolov_back.NAILS_WEB_APP.security.AuthenticationService;
 import Frolov_back.NAILS_WEB_APP.service.DTO.JwtResponse;
 import Frolov_back.NAILS_WEB_APP.service.DTO.LoginRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -90,9 +91,7 @@ public class AuthController {
 }
 
 // Добавляем DTO для refresh token запроса
+@Data
 class RefreshTokenRequest {
     private String refreshToken;
-
-    public String getRefreshToken() { return refreshToken; }
-    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 }

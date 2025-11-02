@@ -1,9 +1,8 @@
-package Frolov_back.NAILS_WEB_APP.service;
+package Frolov_back.NAILS_WEB_APP.security;
 
 import Frolov_back.NAILS_WEB_APP.domain.RefreshToken;
 import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
 import Frolov_back.NAILS_WEB_APP.repository.RefreshTokenRepository;
-import Frolov_back.NAILS_WEB_APP.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

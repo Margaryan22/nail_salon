@@ -1,9 +1,11 @@
 package Frolov_back.NAILS_WEB_APP.service.DTO;
 
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
 // --- DTO для ответа с информацией о пользователе ---
-
+@Data
 public class UserResponseDto {
     private Long userId;
     private String email;
@@ -13,22 +15,4 @@ public class UserResponseDto {
     private LocalDateTime createdAt;
     private String userType; // "ADMIN", "MASTER", "CLIENT"
     private String role; // Из enum UserRoleType
-
-    // Геттеры и сеттеры
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public String getUserType() { return userType; }
-    public void setUserType(String userType) { this.userType = userType; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
 }

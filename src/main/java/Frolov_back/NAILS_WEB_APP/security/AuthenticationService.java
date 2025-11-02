@@ -1,12 +1,10 @@
-package Frolov_back.NAILS_WEB_APP.service.impl;
+package Frolov_back.NAILS_WEB_APP.security;
 
 import Frolov_back.NAILS_WEB_APP.domain.RefreshToken;
 import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
 import Frolov_back.NAILS_WEB_APP.repository.SystemUserRepository;
-import Frolov_back.NAILS_WEB_APP.security.JwtService;
 import Frolov_back.NAILS_WEB_APP.service.DTO.JwtResponse;
 import Frolov_back.NAILS_WEB_APP.service.DTO.LoginRequest;
-import Frolov_back.NAILS_WEB_APP.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,7 +58,7 @@ public class AuthenticationService {
 
         SystemUser user = token.getUser();
 
-        String newAccessToken = jwtService.generateToken((UserDetails) user);
+        String newAccessToken = jwtService.generateToken(user);
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
 
         return new JwtResponse(
