@@ -409,7 +409,7 @@ const ClientRegistrationForm: React.FC<FormProps> = ({
           {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
         </button>
         <p className='login-link-container'>
-          Если у вас уже есть аккаунт -{' '}
+          Если у вас уже есть аккаунт -
           <Link to='/login' className='login-link'>
             авторизируйтесь
           </Link>

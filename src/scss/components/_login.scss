@@ -1,0 +1,196 @@
+@import '../variables';
+
+// === LAYOUT & CARD CONTAINER ===
+
+// 1. Контейнер формы входа (замена .registration-container)
+.login-page-container {
+  max-width: 450px;
+  margin: $spacing-unit * 8 auto;
+  padding: 0;
+  background-color: transparent; // Фон вне формы прозрачный
+  text-align: center;
+
+  h2 {
+    font-size: 2em;
+    font-weight: bold;
+    color: $color-dark-gray;
+    margin-bottom: $spacing-unit * 5;
+  }
+}
+
+// 2. Белая карточка формы (замена .registration-form)
+.login-card {
+  padding: $spacing-unit * 5;
+  background-color: white; // Белый фон
+  border-radius: $border-radius * 1.5;
+  box-shadow: 0 6px 20px rgba($color-primary-gray, 0.1);
+  border: 1px solid $color-light-gray; // Тонкая, светлая граница
+  // Сброс outline, чтобы избежать бесцветной рамки
+  outline: none;
+  box-shadow: none; // Убираем тень, если вы хотите только рамку
+}
+
+// === BASE FORM ELEMENTS (Переименованные, но стили идентичны) ===
+
+/* Общий заголовок формы */
+.form-title {
+  font-size: 1.4em;
+  margin-bottom: $spacing-unit * 4;
+  color: $color-dark-gray;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Общая группа поля */
+.form-group {
+  margin-bottom: $spacing-unit * 3;
+  text-align: left;
+}
+
+/* Общий лейбл поля */
+.form-label {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: $color-dark-gray;
+  margin-bottom: $spacing-unit;
+  text-align: left;
+}
+
+// --- Общий стиль инпута (.form-input) ---
+.form-input {
+  width: 100%;
+  color: $color-dark-gray;
+  font-size: 1em;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  // Стили, специфичные для формы
+  padding: $spacing-unit * 1.5 $spacing-unit * 2;
+  border: 1px solid $color-medium-gray;
+  border-radius: $border-radius * 0.5;
+  background-color: $color-light-gray;
+  box-shadow: inset 0 1px 3px rgba($color-dark-gray, 0.05);
+
+  &::placeholder {
+    color: $color-medium-gray;
+    font-size: 1em;
+  }
+
+  &:focus {
+    background-color: white;
+    border-color: $color-primary-gray;
+    box-shadow: 0 0 5px rgba($color-primary-gray, 0.3);
+  }
+}
+
+// --- Стилизация парольного поля ---
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-input {
+    padding-right: $spacing-unit * 5;
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  right: $spacing-unit * 1.5;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  // Используем эмодзи, т.к. Lucide не импортирован
+  font-size: 1.2rem;
+}
+
+// --- Сообщения (Error/Success/Loading) ---
+.response-message {
+  margin-top: $spacing-unit * 3;
+  padding: $spacing-unit * 2;
+  border-radius: $border-radius * 0.5;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9em;
+
+  &.error {
+    background-color: lighten($color-neon-red, 45%);
+    color: $color-neon-red;
+    border: 1px solid $color-neon-red;
+    text-shadow: 0 0 2px $color-neon-red;
+    box-shadow: $shadow-neon-red;
+  }
+
+  &.success {
+    background-color: lighten($color-success, 40%);
+    color: darken($color-success, 20%);
+    border: 1px solid $color-success;
+  }
+
+  &.loading {
+    background-color: $color-light-gray;
+    color: $color-dark-gray;
+    border: 1px solid $color-medium-gray;
+  }
+}
+
+// --- Кнопка Submit ---
+.form-button {
+  width: 200px; // Фиксированная ширина
+  padding: $spacing-unit * 1.5;
+  margin-top: $spacing-unit * 3;
+
+  background-color: $color-dark-gray;
+  color: white;
+  border: none;
+  border-radius: $border-radius * 0.5;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 5px rgba($color-dark-gray, 0.2);
+
+  &:hover:not(:disabled) {
+    background-color: $color-hover-gray;
+  }
+
+  &:disabled {
+    background-color: $color-medium-gray;
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+}
+
+// --- Ссылка на регистрацию ---
+.login-link-container {
+  text-align: center;
+  margin-top: $spacing-unit * 3;
+  font-size: 0.9rem;
+  color: $color-primary-gray;
+
+  .login-link {
+    color: $color-primary-gray;
+    text-decoration: underline;
+    font-weight: 600;
+    transition: color 0.3s;
+
+    &:hover {
+      color: $color-dark-gray;
+    }
+  }
+}

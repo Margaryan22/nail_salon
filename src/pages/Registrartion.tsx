@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import axios, { AxiosError } from 'axios'; // Импортируем axios и AxiosError
 
 // Импортируем обновленные типы
 import type {
@@ -16,33 +17,19 @@ import MasterRegistrationForm from '../components/Registration/MasterRegistratio
 import AdminRegistrationForm from '../components/Registration/AdminRegistrationForm';
 
 /**
- * Реальный POST запрос на регистрацию.
+ * Реальный POST запрос на регистрацию с использованием axios.
  */
+const API_REGISTER_URL = 'http://87.242.87.228:8080/api/v1/auth/register';
+
 const apiRegister = async (data: RegistrationData): Promise<ApiResponse> => {
   try {
-    const response = await fetch(
-      'http://87.242.87.228:8080/api/v1/auth/register',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    // Использование axios.post:
+    // - Автоматически устанавливает Content-Type: application/json.
+    // - Автоматически парсит ответ в response.data.
+    // - Бросает исключение для статусов 4xx/5xx.
+    const response = await axios.post(API_REGISTER_URL, data); // Если код дошел сюда, статус - 2xx (успех)
 
-    const responseData = await response.json();
-    console.error(
-      'Server error details:',
-      JSON.stringify(responseData, null, 2)
-    );
-    if (!response.ok) {
-      console.error('Server error details:', responseData); // <- Добавьте это
-      return {
-        status: response.status,
-        message: responseData.message || 'Ошибка регистрации',
-      };
-    } // Для 201 - успех
+    const responseData = response.data;
 
     return {
       status: response.status,
@@ -51,11 +38,37 @@ const apiRegister = async (data: RegistrationData): Promise<ApiResponse> => {
         `Успешная регистрация для ${data.firstName} (${data.role})!`,
     };
   } catch (error) {
-    console.error('Network error:', error);
-    return {
-      status: 500,
-      message: 'Произошла ошибка сети/сервера.',
-    };
+    const axiosError = error as AxiosError;
+    console.error('Ошибка Axios при регистрации:', axiosError);
+
+    if (axiosError.response) {
+      // Ошибка HTTP (4xx или 5xx)
+      const status = axiosError.response.status;
+      const responseData = axiosError.response.data as {
+        message?: string;
+        error?: string;
+      };
+
+      return {
+        status: status,
+        message:
+          responseData.message ||
+          responseData.error ||
+          'Ошибка регистрации. Проверьте введенные данные.',
+      };
+    } else if (axiosError.request) {
+      // Ошибка запроса (нет ответа от сервера)
+      return {
+        status: 503, // Service Unavailable (или 500, в зависимости от предпочтений)
+        message: 'Проблема с подключением к серверу. Сервер недоступен.',
+      };
+    } else {
+      // Другие ошибки
+      return {
+        status: 500,
+        message: 'Произошла неизвестная ошибка при отправке запроса.',
+      };
+    }
   }
 };
 
@@ -102,11 +115,17 @@ const Registration: React.FC = () => {
   ); // Вычисление класса сообщения
 
   const getMessageClass = () => {
-    if (serverMessage.status === 201) return 'success';
+    if (
+      serverMessage.status &&
+      serverMessage.status >= 200 &&
+      serverMessage.status < 300
+    )
+      return 'success';
     if (
       serverMessage.status === 400 ||
       serverMessage.status === 409 ||
-      serverMessage.status === 500
+      serverMessage.status === 500 ||
+      serverMessage.status === 503
     )
       return 'error';
     if (isLoading) return 'loading';
@@ -151,10 +170,10 @@ const Registration: React.FC = () => {
 
   return (
     <div className='registration-container'>
-            <h2>Регистрация нового пользователя</h2>     
-      {/* Блок переключения ролей (табов) */}     
+                  <h2>Регистрация нового пользователя</h2>           
+      {/* Блок переключения ролей (табов) */}           
       <div className='role-tabs'>
-               
+                               
         {(['CLIENT', 'MASTER', 'ADMIN'] as Role[]).map((r) => (
           <button
             key={r}
@@ -165,27 +184,29 @@ const Registration: React.FC = () => {
             }}
             disabled={isLoading}
           >
-                       
+                                               
             {r === 'CLIENT' ? 'Клиент' : r === 'MASTER' ? 'Мастер' : 'Админ'}   
-                 
+                                       
           </button>
         ))}
-             
+                           
       </div>
-            {/* Рендеринг активной формы */}      {renderForm()}     
+                  {/* Рендеринг активной формы */}      {renderForm()}         
+       
       {/* Отображаем сообщение (кроме статуса 400 - ошибки валидации внутри формы) */}
-           
+                       
       {serverMessage.text && serverMessage.status !== 400 && (
         <div className={`response-message ${messageClass}`}>
-                   
+                                       
           <p>
-               <strong>Статус:</strong> {serverMessage.status || '...'}     {' '}
-            <strong> Сообщение:</strong> {serverMessage.text}         
+                           <strong>Статус:</strong>
+            {serverMessage.status || '...'}                 
+            <strong> Сообщение:</strong> {serverMessage.text}                   
           </p>
-                 
+                                   
         </div>
       )}
-         
+                   
     </div>
   );
 };

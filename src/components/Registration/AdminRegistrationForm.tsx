@@ -157,20 +157,20 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
 
   return (
     <div className='registration-container'>
-           {' '}
+           
       <form
         onSubmit={handleSubmit(onSubmit)}
         className='registration-form'
         noValidate
       >
                 <p className='form-title'>Регистрация как Администратор</p>     
-          {/* Имя */}       {' '}
+          {/* Имя */}       
         <div className='form-group'>
-                   {' '}
+                   
           <label htmlFor='firstName' className='form-label'>
-                        Имя          {' '}
+                        Имя          
           </label>
-                   {' '}
+                   
           <Controller
             name='firstName'
             control={control}
@@ -191,19 +191,19 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
               />
             )}
           />
-                   {' '}
+                   
           {errors.firstName && isSubmitted && (
             <p className='error-message'>{errors.firstName.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Фамилия */}       {' '}
+                {/* Фамилия */}       
         <div className='form-group'>
-                   {' '}
+                   
           <label htmlFor='lastName' className='form-label'>
-                        Фамилия          {' '}
+                        Фамилия          
           </label>
-                   {' '}
+                   
           <Controller
             name='lastName'
             control={control}
@@ -224,19 +224,19 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
               />
             )}
           />
-                   {' '}
+                   
           {errors.lastName && isSubmitted && (
             <p className='error-message'>{errors.lastName.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Телефон */}       {' '}
+                {/* Телефон */}       
         <div className='form-group'>
-                   {' '}
+                   
           <label htmlFor='phone' className='form-label'>
-                        Телефон          {' '}
+                        Телефон          
           </label>
-                   {' '}
+                   
           <Controller
             name='phone'
             control={control}
@@ -256,19 +256,19 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
               />
             )}
           />
-                   {' '}
+                   
           {errors.phone && isSubmitted && (
             <p className='error-message'>{errors.phone.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Email */}       {' '}
+                {/* Email */}       
         <div className='form-group'>
-                   {' '}
+                   
           <label htmlFor='email' className='form-label'>
-                        Email          {' '}
+                        Email          
           </label>
-                   {' '}
+                   
           <Controller
             name='email'
             control={control}
@@ -284,19 +284,19 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
               />
             )}
           />
-                   {' '}
+                   
           {errors.email && isSubmitted && (
             <p className='error-message'>{errors.email.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Пароль */}       {' '}
+                {/* Пароль */}       
         <div className='form-group password-group'>
-                   {' '}
+                   
           <label htmlFor='password' className='form-label'>
-                        Пароль          {' '}
+                        Пароль          
           </label>
-                   {' '}
+                   
           <Controller
             name='password'
             control={control}
@@ -310,7 +310,7 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
             }}
             render={({ field }) => (
               <div className='password-input-container'>
-                               {' '}
+                               
                 <input
                   {...field}
                   type={showPassword ? 'text' : 'password'}
@@ -319,14 +319,14 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
                   }`}
                   autoComplete='new-password'
                 />
-                               {' '}
+                               
                 <button
                   type='button'
                   className='password-toggle'
                   onClick={togglePasswordVisibility}
                   disabled={isLoading}
                 >
-                                   {' '}
+                                   
                   {showPassword ? (
                     <svg
                       width='20'
@@ -335,12 +335,12 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
                       fill='none'
                       xmlns='http://www.w3.org/2000/svg'
                     >
-                                           {' '}
+                                           
                       <path
                         d='M12 4.5C7 4.5 1.9 7.71 0.5 12C1.9 16.29 7 19.5 12 19.5C17 19.5 22.1 16.29 23.5 12C22.1 7.71 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z'
                         fill='#999'
                       />
-                                         {' '}
+                                         
                     </svg>
                   ) : (
                     <svg
@@ -350,33 +350,33 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
                       fill='none'
                       xmlns='http://www.w3.org/2000/svg'
                     >
-                                           {' '}
+                                           
                       <path
                         d='M12 7C13.1 7 14 7.9 14 9C14 10.1 13.1 11 12 11C10.9 11 10 10.1 10 9C10 7.9 10.9 7 12 7ZM12 2C6.48 2 2.12 4.9 0.06 9.9L0 10L0.06 10.1C0.32 10.71 0.63 11.31 1 11.9C2.44 14.93 5.07 17 8 17H12V19H18V17H20V15H22V13H20V11H22V9H20V7H18V5H12V2ZM12 15C9.79 15 8 13.21 8 11C8 8.79 9.79 7 12 7C14.21 7 16 8.79 16 11C16 13.21 14.21 15 12 15Z'
                         fill='#999'
                       />
-                                         {' '}
+                                         
                     </svg>
                   )}
-                                 {' '}
+                                 
                 </button>
-                             {' '}
+                             
               </div>
             )}
           />
-                   {' '}
+                   
           {errors.password && isSubmitted && (
             <p className='error-message'>{errors.password.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Уровень прав (Select) */}       {' '}
+                {/* Уровень прав (Select) */}       
         <div className='form-group'>
-                   {' '}
+                   
           <label htmlFor='permissionsLevel' className='form-label'>
-                        Уровень прав          {' '}
+                        Уровень прав          
           </label>
-                   {' '}
+                   
           <Controller
             name='permissionsLevel'
             control={control}
@@ -389,39 +389,39 @@ const AdminRegistrationForm: React.FC<FormProps> = ({
                 }`}
               >
                                 <option value='1'>Уровень 1</option>           
-                    <option value='2'>Уровень 2</option>             {' '}
+                    <option value='2'>Уровень 2</option>             
               </select>
             )}
           />
-                   {' '}
+                   
           {errors.permissionsLevel && isSubmitted && (
             <p className='error-message'>{errors.permissionsLevel.message}</p>
           )}
-                 {' '}
+                 
         </div>
-               {' '}
+               
         {responseMessage.type && (
           <div className={`response-message ${responseMessage.type}`}>
-                        {responseMessage.message}         {' '}
+                        {responseMessage.message}         
           </div>
         )}
-               {' '}
+               
         <button
           type='submit'
           className={`form-button ${isSubmitted && !isValid ? 'error' : ''}`}
           disabled={isLoading || (isSubmitted && !isValid)}
         >
-                   {' '}
+                   
           {isLoading
             ? 'Регистрация...'
             : isSubmitted && !isValid
             ? 'Ошибка валидации'
             : 'Зарегистрироваться'}
-                 {' '}
+                 
         </button>
-             {' '}
+             
       </form>
-         {' '}
+         
     </div>
   );
 };
