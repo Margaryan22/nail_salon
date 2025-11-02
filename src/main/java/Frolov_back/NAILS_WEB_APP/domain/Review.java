@@ -1,9 +1,12 @@
 package Frolov_back.NAILS_WEB_APP.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 @Table(name = "reviews")
 public class Review {
     @Id
@@ -37,63 +40,4 @@ public class Review {
 
     // Конструкторы, геттеры, сеттеры
     public Review() {}
-
-    // ... геттеры и сеттеры
-
-
-    public Long getReviewId() {
-        return reviewId;
-    }
-
-    public void setReviewId(Long reviewId) {
-        this.reviewId = reviewId;
-    }
-
-    public Appointment getAppointment() {
-        return appointment;
-    }
-
-    public void setAppointment(Appointment appointment) {
-        this.appointment = appointment;
-    }
-
-    public SystemUser getClient() {
-        return client;
-    }
-
-    public void setClient(SystemUser client) {
-        this.client = client;
-    }
-
-    public SystemUser getMaster() {
-        return master;
-    }
-
-    public void setMaster(SystemUser master) {
-        this.master = master;
-    }
-
-    public Short getRating() {
-        return rating;
-    }
-
-    public void setRating(Short rating) {
-        this.rating = rating;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }

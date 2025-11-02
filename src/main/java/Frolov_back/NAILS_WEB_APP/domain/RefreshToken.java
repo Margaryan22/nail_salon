@@ -1,9 +1,12 @@
 package Frolov_back.NAILS_WEB_APP.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 @Table(name = "refresh_tokens")
 public class RefreshToken {
     @Id
@@ -28,14 +31,4 @@ public class RefreshToken {
         this.token = token;
         this.expiryDate = expiryDate;
     }
-
-    // Геттеры и сеттеры
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public SystemUser getUser() { return user; }
-    public void setUser(SystemUser user) { this.user = user; }
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-    public LocalDateTime getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
 }

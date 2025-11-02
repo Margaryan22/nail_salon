@@ -1,8 +1,10 @@
 package Frolov_back.NAILS_WEB_APP.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "admin_profiles")
 public class AdminProfile {
     @Id
@@ -21,31 +23,6 @@ public class AdminProfile {
 
     public AdminProfile(SystemUser systemUser, Integer permissionsLevel) {
         this.systemUser = systemUser;
-        this.permissionsLevel = permissionsLevel;
-    }
-
-    // Геттеры и сеттеры
-    public Long getAdminId() {
-        return adminId;
-    }
-
-    public void setAdminId(Long adminId) {
-        this.adminId = adminId;
-    }
-
-    public SystemUser getSystemUser() {
-        return systemUser;
-    }
-
-    public void setSystemUser(SystemUser systemUser) {
-        this.systemUser = systemUser;
-    }
-
-    public Integer getPermissionsLevel() {
-        return permissionsLevel;
-    }
-
-    public void setPermissionsLevel(Integer permissionsLevel) {
         this.permissionsLevel = permissionsLevel;
     }
 

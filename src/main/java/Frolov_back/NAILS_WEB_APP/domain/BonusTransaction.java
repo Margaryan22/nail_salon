@@ -1,9 +1,12 @@
 package Frolov_back.NAILS_WEB_APP.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 @Table(name = "bonus_transactions")
 public class BonusTransaction {
     @Id
@@ -37,64 +40,5 @@ public class BonusTransaction {
 
     // Конструкторы, геттеры, сеттеры
     public BonusTransaction() {}
-
-    // ... геттеры и сеттеры
-
-
-    public Long getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(Long transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public SystemUser getClient() {
-        return client;
-    }
-
-    public void setClient(SystemUser client) {
-        this.client = client;
-    }
-
-    public Appointment getAppointment() {
-        return appointment;
-    }
-
-    public void setAppointment(Appointment appointment) {
-        this.appointment = appointment;
-    }
-
-    public Integer getPoints() {
-        return points;
-    }
-
-    public void setPoints(Integer points) {
-        this.points = points;
-    }
-
-    public BonusTransactionType getType() {
-        return type;
-    }
-
-    public void setType(BonusTransactionType type) {
-        this.type = type;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }
 

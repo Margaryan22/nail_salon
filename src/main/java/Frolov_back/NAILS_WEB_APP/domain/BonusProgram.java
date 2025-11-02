@@ -1,9 +1,12 @@
 package Frolov_back.NAILS_WEB_APP.domain;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.math.BigDecimal;
 
 @Entity
+@Data
 @Table(name = "bonus_programs")
 public class BonusProgram {
     @Id
@@ -26,55 +29,4 @@ public class BonusProgram {
 
     // Конструкторы, геттеры, сеттеры
     public BonusProgram() {}
-
-    // ... геттеры и сеттеры
-
-
-    public Long getProgramId() {
-        return programId;
-    }
-
-    public void setProgramId(Long programId) {
-        this.programId = programId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getPointsPerAmount() {
-        return pointsPerAmount;
-    }
-
-    public void setPointsPerAmount(BigDecimal pointsPerAmount) {
-        this.pointsPerAmount = pointsPerAmount;
-    }
-
-    public BigDecimal getMinAmount() {
-        return minAmount;
-    }
-
-    public void setMinAmount(BigDecimal minAmount) {
-        this.minAmount = minAmount;
-    }
-
-    public Boolean getActive() {
-        return isActive;
-    }
-
-    public void setActive(Boolean active) {
-        isActive = active;
-    }
 }
