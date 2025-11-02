@@ -20,7 +20,7 @@ public interface ServiceCategoryRepository extends BaseRepository<ServiceCategor
     List<ServiceCategory> findAllByOrderBySortOrderAsc();
 
     // Найти категории с услугами
-    @Query("SELECT DISTINCT sc FROM ServiceCategory sc JOIN sc.services s WHERE s.isActive = true")
+    @Query("SELECT DISTINCT sc FROM ServiceCategory sc JOIN sc.services s WHERE s.active = true")
     List<ServiceCategory> findCategoriesWithActiveServices();
 
     // Проверить существование по имени

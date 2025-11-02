@@ -1,7 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.repository;
 
+import Frolov_back.NAILS_WEB_APP.domain.NailService;
 import Frolov_back.NAILS_WEB_APP.domain.Promotion;
-import Frolov_back.NAILS_WEB_APP.domain.Service;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,7 +20,7 @@ public interface PromotionRepository extends BaseRepository<Promotion, Long> {
     Optional<Promotion> findByPromoCode(String promoCode);
 
     // Найти акции для услуги
-    List<Promotion> findByServiceAndIsActiveTrue(Service service);
+    List<Promotion> findByServiceAndIsActiveTrue(NailService service);
 
     // Найти действующие акции на дату
     @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND " +

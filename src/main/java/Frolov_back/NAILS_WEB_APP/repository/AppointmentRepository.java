@@ -2,7 +2,7 @@ package Frolov_back.NAILS_WEB_APP.repository;
 
 import Frolov_back.NAILS_WEB_APP.domain.Appointment;
 import Frolov_back.NAILS_WEB_APP.domain.AppointmentStatusType;
-import Frolov_back.NAILS_WEB_APP.domain.Service;
+import Frolov_back.NAILS_WEB_APP.domain.NailService;
 import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

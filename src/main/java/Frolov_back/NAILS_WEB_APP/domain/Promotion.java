@@ -28,7 +28,7 @@ public class Promotion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
-    private Service service;
+    private NailService service;
 
     private LocalDate startDate;
     private LocalDate endDate;

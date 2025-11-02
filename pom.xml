@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>Frolov_back</groupId>
 	<artifactId>NAILS_WEB_APP</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<name>NAILS_WEB_APP</name>
 	<description>web app for manicure</description>
 	<url/>

@@ -18,7 +18,7 @@ public class MasterServiceEntity {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private NailService service;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal masterPrice;
@@ -26,7 +26,7 @@ public class MasterServiceEntity {
     // Конструкторы, геттеры, сеттеры
     public MasterServiceEntity() {}
 
-    public MasterServiceEntity(SystemUser master, Service service, BigDecimal masterPrice) {
+    public MasterServiceEntity(SystemUser master, NailService service, BigDecimal masterPrice) {
         this.master = master;
         this.service = service;
         this.masterPrice = masterPrice;

@@ -23,7 +23,7 @@ public class ServiceCategory {
     private Integer sortOrder = 0;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    private List<Service> services = new ArrayList<>();
+    private List<NailService> services = new ArrayList<>();
 
     // Конструкторы, геттеры, сеттеры
     public ServiceCategory() {}

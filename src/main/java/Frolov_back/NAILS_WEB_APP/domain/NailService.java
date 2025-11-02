@@ -10,7 +10,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "services")
-public class Service {
+public class NailService {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long serviceId;
@@ -30,8 +30,9 @@ public class Service {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal basePrice;
 
+    //TODO: могут всплыть проблемы, т.к. у всего другого isActive - не забывай, что тут именно так
     @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
-    private Boolean isActive = true;
+    private Boolean active = true;
 
     @OneToMany(mappedBy = "service", fetch = FetchType.LAZY)
     private List<MasterServiceEntity> masterServices = new ArrayList<>();
@@ -43,5 +44,5 @@ public class Service {
     private List<Promotion> promotions = new ArrayList<>();
 
     // Конструкторы, геттеры, сеттеры
-    public Service() {}
+    public NailService() {}
 }
