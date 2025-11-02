@@ -1,0 +1,18 @@
+// --- Color Palette (Gray Tones) ---
+$color-primary-gray: #5e5e5e; // Darker gray for text/headings
+$color-light-gray: #f0f0f0; // Lightest gray for background/containers
+$color-medium-gray: #d4d4d4; // Medium gray for borders/separators/disabled
+$color-dark-gray: #4a4a4a; // Dark gray for button background/active tabs
+$color-hover-gray: #3a3a3a; // Darker gray for button hover
+
+// --- Status Colors ---
+$color-success: #4caf50;
+$color-error: #f44336; // Исходный красный
+
+// --- NEON Status Colors ---
+$color-neon-red: #ff3333; // Яркий красный (неон)
+$shadow-neon-red: 0 0 5px $color-neon-red, 0 0 10px $color-neon-red;
+
+// --- Dimensions & Borders ---
+$border-radius: 12px; // Main rounded borders
+$spacing-unit: 8px; // Base spacing unit (e.g., $spacing-unit * 2 = 16px)

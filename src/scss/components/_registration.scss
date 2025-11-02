@@ -1,0 +1,283 @@
+// Импортируем переменные в глобальное пространство имен
+@import '../variables';
+
+// === LAYOUT & CARD CONTAINER ===
+
+// Контейнер верхнего уровня
+.registration-container {
+  max-width: 450px;
+  margin: $spacing-unit * 8 auto;
+  padding: 0;
+  background-color: transparent;
+  text-align: center;
+
+  h2 {
+    font-size: 2em;
+    font-weight: bold;
+    color: $color-dark-gray;
+    margin-bottom: $spacing-unit * 5;
+  }
+}
+
+// --- Белая карточка формы (registration-form) ---
+.registration-form {
+  padding: $spacing-unit * 5;
+  background-color: white;
+  border-radius: $border-radius * 1.5;
+  box-shadow: 0 6px 20px rgba($color-primary-gray, 0.1);
+  border: 1px solid $color-light-gray;
+
+  /* Стили для заглушек (Master, Admin) */
+  &[style*='text-align: center'] {
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+    font-style: italic;
+    color: $color-primary-gray;
+    margin-bottom: $spacing-unit * 3;
+  }
+}
+
+// === BASE FORM ELEMENTS (Reusable styles) ===
+
+/* Общий заголовок формы */
+.form-title {
+  font-size: 1.4em;
+  margin-bottom: $spacing-unit * 4;
+  color: $color-dark-gray;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Общая группа поля */
+.form-group {
+  margin-bottom: $spacing-unit * 3;
+  text-align: left;
+}
+
+/* Общий лейбл поля */
+.form-label {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: $color-dark-gray;
+  margin-bottom: $spacing-unit;
+  text-align: left;
+}
+
+// --- Общий стиль инпута (.form-input) ---
+// Включает содержимое удаленного миксина 'input-style'
+.form-input {
+  // Базовые стили из миксина
+  width: 100%;
+  color: $color-dark-gray;
+  font-size: 1em;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  // Визуально приводим текст к заглавной букве в начале каждого слова
+  text-transform: capitalize;
+
+  // Стили, специфичные для формы
+  padding: $spacing-unit * 1.5 $spacing-unit * 2;
+  border: 1px solid $color-medium-gray;
+  border-radius: $border-radius * 0.5;
+  background-color: $color-light-gray;
+  box-shadow: inset 0 1px 3px rgba($color-dark-gray, 0.05);
+
+  &::placeholder {
+    color: $color-medium-gray;
+    font-size: 1em;
+  }
+
+  &:focus {
+    background-color: white;
+    border-color: $color-primary-gray;
+    box-shadow: 0 0 5px rgba($color-primary-gray, 0.3);
+  }
+}
+
+// --- Общий стиль textarea (.form-textarea) ---
+.form-textarea {
+  // Наследуем все стили инпута, добавляя только специфичные
+  @extend .form-input;
+  resize: vertical;
+  min-height: 100px;
+}
+
+// --- Общий стиль кнопки (.form-button) ---
+// Унифицированный стиль для всех ролей: серый фон, как в клиентской форме
+.form-button {
+  width: 200px; // Фиксированная ширина для единообразия
+  padding: $spacing-unit * 1.5;
+  margin-top: $spacing-unit * 3;
+
+  /* Серый фон для всех кнопок submit */
+  background-color: $color-medium-gray;
+  color: white;
+  border: none;
+  border-radius: $border-radius * 0.5;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+
+  /* Добавляем небольшую тень для объема */
+  box-shadow: 0 2px 5px rgba($color-dark-gray, 0.2);
+
+  &:hover:not(:disabled) {
+    background-color: $color-dark-gray;
+  }
+
+  &:disabled {
+    background-color: $color-medium-gray;
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+}
+
+// ==========================================================
+// Стили для табов (Client, Master, Admin) - Specific Component
+// ==========================================================
+.role-tabs {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-unit;
+  margin-bottom: $spacing-unit * 4;
+
+  .tab-button {
+    padding: $spacing-unit $spacing-unit * 2.5;
+    border: 1px solid $color-medium-gray;
+    border-radius: $border-radius * 0.25;
+    background-color: white;
+    color: $color-dark-gray;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease,
+      border-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: $color-light-gray;
+    }
+
+    &.active-tab {
+      background-color: $color-dark-gray;
+      color: white;
+      border-color: $color-dark-gray;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      background-color: $color-light-gray;
+    }
+  }
+}
+
+// ==========================================================
+// Стилизация полей ввода для всех форм - Common Overrides
+// ==========================================================
+// Унифицированные стили для всех форм регистрации (CLIENT, MASTER, ADMIN)
+// Нет специфических переопределений - все используют общие классы
+
+// === СТИЛИ ДЛЯ ПАРОЛЬНОГО ПОЛЯ С ГЛАЗОМ ===
+.password-group {
+  position: relative;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-input {
+    padding-right: $spacing-unit * 5; // Дополнительный отступ справа для глаза
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  right: $spacing-unit * 1.5;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none; // Без границ
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: $color-medium-gray; // Цвет иконки
+  }
+}
+
+// =======================================================
+// === НЕОНОВЫЕ СТИЛИ ДЛЯ ВАЛИДАЦИИ (NEON RED) ===========
+// =======================================================
+
+// 1. Инпут в состоянии ошибки
+.input-error {
+  border-color: $color-neon-red !important;
+  box-shadow: $shadow-neon-red !important;
+}
+
+// 2. Сообщение об ошибке под инпутом
+.error-message {
+  margin-top: $spacing-unit;
+  color: $color-neon-red;
+  font-size: 0.95em;
+  font-weight: bold;
+  text-align: left;
+  text-shadow: 0 0 1px $color-neon-red;
+}
+
+// 3. Общий блок сообщений от сервера (Error/4xx/5xx)
+.response-message {
+  margin-top: $spacing-unit * 3;
+  padding: $spacing-unit * 2;
+  border-radius: $border-radius * 0.5;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9em;
+
+  &.success {
+    background-color: lighten($color-success, 40%);
+    color: darken($color-success, 20%);
+    border: 1px solid $color-success;
+  }
+
+  &.loading {
+    background-color: $color-light-gray;
+    color: $color-dark-gray;
+    border: 1px solid $color-medium-gray;
+  }
+
+  // НЕОНОВЫЙ КРАСНЫЙ ДЛЯ ОШИБОК СЕРВЕРА
+  &.error {
+    background-color: lighten($color-neon-red, 45%);
+    color: $color-neon-red;
+    border: 1px solid $color-neon-red;
+    font-weight: bold;
+
+    text-shadow: 0 0 2px $color-neon-red;
+    box-shadow: $shadow-neon-red;
+  }
+}

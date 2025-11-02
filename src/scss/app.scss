@@ -1,0 +1,33 @@
+@use './components/all';
+@use './variables' as vars;
+
+// Переиспользуем переменную для света (если она есть)
+$color-light-gray: #f0f0f0;
+
+// Базовые стили для всего приложения
+body,
+html,
+#root {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: $color-light-gray; // Устанавливаем общий светло-серый фон
+  color: #333;
+  min-height: 100vh; // Занимает всю высоту видимой области
+  box-sizing: border-box;
+  user-select: none;
+}
+
+// Контейнер, который будет ограничивать ширину и центрировать контент
+.app-container {
+  padding: 20px;
+
+  // Ограничение максимальной ширины для десктопов
+  max-width: 1200px;
+  margin: 0 auto; // Центрирование
+
+  // Медиазапросы для адаптивности:
+  @media (max-width: 768px) {
+    padding: 10px; // Уменьшаем отступы на маленьких экранах
+  }
+}
