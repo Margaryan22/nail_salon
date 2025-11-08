@@ -1,0 +1,104 @@
+// src/scss/MasterSwiper.scss
+@import '../variables';
+
+// Основной контейнер Swiper (эквивалент .swiper)
+.swiper {
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  overflow: hidden;
+  list-style: none;
+  padding: 0;
+  z-index: 1; // Устанавливаем z-index, чтобы контент был поверх
+  display: block; // Убеждаемся, что это блочный элемент
+  width: 100%; // Обязательная ширина
+}
+
+// Обёртка слайдов (эквивалент .swiper-wrapper)
+.swiper-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  transition-property: transform;
+  box-sizing: content-box;
+}
+
+// Слайд (эквивалент .swiper-slide)
+.swiper-slide {
+  flex-shrink: 0;
+  width: 100%; // Swiper рассчитывает это, но с 'auto' мы даем ему гибкость
+  height: 100%;
+  position: relative;
+  transition-property: transform;
+
+  // ⬇️ ВАЖНО: Остается, если slidesPerView: 'auto'
+  width: auto !important;
+  display: flex;
+  justify-content: center;
+}
+
+// =========================================================
+// 2. СТИЛИ НАВИГАЦИОННЫХ КНОПОК (Замена 'swiper/css/navigation')
+// =========================================================
+
+// Стилизация кастомных навигационных кнопок (Классы из MasterList.tsx)
+.swiper-button-prev-custom,
+.swiper-button-next-custom {
+  // Общие параметры позиционирования
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  // Параметры внешнего вида
+  width: 40px;
+  height: 40px;
+  background-color: $color-white;
+  border-radius: 50%;
+  box-shadow: $box-shadow-main;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 1.5em;
+  color: $color-dark-gray;
+
+  // Логика видимости при наведении
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, background-color 0.2s;
+  pointer-events: none;
+
+  &.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  &:hover {
+    background-color: $color-light-gray;
+  }
+
+  // Стили для отключенного состояния (Класс, указанный в navigation: { disabledClass: ... })
+  &.swiper-button-disabled-custom {
+    opacity: 0.3; // Становится полупрозрачной
+    cursor: not-allowed; // Курсор "нет"
+    pointer-events: none; // Не реагирует на клики
+  }
+}
+
+.swiper-button-prev-custom {
+  left: 0px;
+}
+
+.swiper-button-next-custom {
+  right: 0px;
+}
+
+// Стилизация для компонента MasterList
+
+.swiper-wrapper-custom {
+  // Контейнер для Swiper и кастомных стрелок (Для position: relative)
+  position: relative;
+  padding: $spacing-unit;
+}

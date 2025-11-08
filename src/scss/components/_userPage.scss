@@ -1,0 +1,18 @@
+// src/scss/UserPage.scss
+@import '../variables';
+
+.user-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-unit * 3;
+  font-family: sans-serif;
+}
+
+.user-page-header {
+  color: $color-primary-gray;
+  margin-bottom: $spacing-unit * 4;
+}
+
+.content-block {
+  margin-bottom: $spacing-unit * 5;
+}

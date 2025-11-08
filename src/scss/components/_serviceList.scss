@@ -1,0 +1,44 @@
+// src/scss/ServiceList.scss
+@import '../variables';
+
+.service-list-block {
+  margin: $spacing-unit * 2 0;
+  border: 1px solid $color-medium-gray;
+  border-radius: $border-radius;
+  padding: $spacing-unit * 2 $spacing-unit * 3;
+  box-shadow: $box-shadow-main;
+  background-color: $color-white;
+
+  h2 {
+    color: $color-primary-gray;
+    margin-top: 0;
+    margin-bottom: $spacing-unit * 2;
+  }
+}
+
+.service-items-container {
+  // Контейнер для всех ServiceItem
+}
+
+.show-all-button-container {
+  text-align: center;
+  padding: $spacing-unit * 2 0 $spacing-unit;
+}
+
+.show-all-button {
+  background: $color-light-gray;
+  border: 1px solid $color-medium-gray;
+  padding: $spacing-unit $spacing-unit * 2;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  color: $color-primary-gray;
+  transition: background-color 0.2s;
+  display: inline-block; // Важно для Link
+  text-decoration: none; // Убираем подчеркивание у ссылки
+  text-align: center;
+
+  &:hover {
+    background-color: $color-medium-gray;
+  }
+}

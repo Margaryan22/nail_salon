@@ -1,8 +1,6 @@
 import React, { useState, type FormEvent } from 'react';
-// Импортируем axios и типы для обработки ответов и ошибок
 import axios, { AxiosError, type AxiosResponse } from 'axios';
 import { useNavigate } from 'react-router-dom';
-// Удален импорт useAuth, как было запрошено пользователем.
 
 // URL для запроса. Замените его на ваш реальный API-адрес
 const API_LOGIN_URL = 'http://87.242.87.228:8080/api/v1/auth/login';
@@ -13,15 +11,17 @@ interface LoginPayload {
   email: string;
   password: string;
 }
+
 interface AuthResponse {
   accessToken: string;
+  // Предполагаем, что refreshToken приходит в теле, но мы его не сохраняем в localStorage!
   refreshToken: string;
   tokenType: string;
   userId: number;
   email: string;
   role: string;
 }
-// Интерфейс для ошибок, как они могут прийти от сервера
+
 interface ErrorResponse {
   error: string;
   message: string;
@@ -30,7 +30,6 @@ interface ErrorResponse {
 // --- Компонент ---
 
 const Login: React.FC = () => {
-  // const { login } = useAuth(); // Удалено по запросу пользователя
   const navigate = useNavigate();
 
   const [email, setEmail] = useState<string>('');
@@ -55,50 +54,56 @@ const Login: React.FC = () => {
     const payload: LoginPayload = { email, password };
 
     try {
+      // Важно: Установите withCredentials: true, если бэкенд использует HTTP-Only Cookie для Refresh Token.
       const response: AxiosResponse<AuthResponse> = await axios.post(
         API_LOGIN_URL,
-        payload
+        payload,
+        { withCredentials: true }
       );
 
-      const data = response.data; // !!! Прямое сохранение токенов в localStorage. ВНИМАНИЕ: Уязвимость к XSS-атакам.
+      const data = response.data;
 
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      // 🛑 ВНИМАНИЕ: Для продакшн-кода:
+      // Access Token ДОЛЖЕН храниться в памяти (например, в AuthContext/Redux),
+      // а не в sessionStorage/localStorage.
+      sessionStorage.setItem('accessToken', data.accessToken);
+
+      // Refresh Token должен быть установлен БЭКЕНДОМ в HTTP-Only Cookie.
+      // Мы не должны сохранять его или даже видеть на фронтенде.
 
       setMessage({
         text: `Успешный вход! Роль: ${data.role}. Перенаправление...`,
         type: 'success',
-      }); // --- ЛОГИКА УМНОЙ ПЕРЕАДРЕСАЦИИ ПО РОЛИ ---
+      });
 
-      let redirectPath: string; // Приводим роль к верхнему регистру, чтобы избежать ошибок из-за регистра
+      // --- ЛОГИКА УМНОЙ ПЕРЕАДРЕСАЦИИ ПО РОЛИ ---
+      let redirectPath: string;
       switch (data.role.toUpperCase()) {
         case 'ADMIN':
           redirectPath = '/admin-dashboard';
           break;
-        case 'MASTER': // ДОБАВЛЕНА НОВАЯ РОЛЬ
+        case 'MASTER':
           redirectPath = '/master-dashboard';
           break;
         case 'CLIENT':
           redirectPath = '/client-dashboard';
           break;
-        default: // Маршрут по умолчанию для всех остальных ролей
+        default:
           redirectPath = '/default-user-page';
           break;
       }
 
       setTimeout(() => {
-        console.log(`Перенаправление на: ${redirectPath}`); // Используем определенный маршрут
+        console.log(`Перенаправление на: ${redirectPath}`);
         navigate(redirectPath);
-      }, 1500); // --- КОНЕЦ ЛОГИКИ ПЕРЕАДРЕСАЦИИ ---
+      }, 1500);
     } catch (error) {
-      // Axios ловит и сетевые ошибки, и HTTP-ошибки (4xx/5xx)
       const axiosError = error as AxiosError<ErrorResponse>;
       console.error('Ошибка Axios:', axiosError);
 
       let errorText: string;
 
       if (axiosError.response) {
-        // Ошибка HTTP (4xx или 5xx)
         const status = axiosError.response.status;
         const serverErrorData = axiosError.response.data;
 
@@ -108,11 +113,9 @@ const Login: React.FC = () => {
           'Неверные учетные данные'
         }`;
       } else if (axiosError.request) {
-        // Ошибка запроса (запрос отправлен, но нет ответа - таймаут, проблема CORS/сети)
         errorText =
           'Проблема с подключением к серверу. Запрос отправлен, но нет ответа.';
       } else {
-        // Ошибка настройки
         errorText = 'Ошибка настройки запроса. Пожалуйста, попробуйте снова.';
       }
 
@@ -131,15 +134,13 @@ const Login: React.FC = () => {
 
   return (
     <div className='login-page-container'>
-                  <h2 className='form-title'>🔑 Вход</h2>           {' '}
+      <h2 className='form-title'>🔑 Вход</h2>
       <form onSubmit={handleSubmit} className='login-card'>
-               {' '}
+        {/* Email */}
         <div className='form-group'>
-                                       {' '}
           <label htmlFor='email' className='form-label'>
-                                    Email                    {' '}
+            Email
           </label>
-                                       {' '}
           <input
             type='email'
             id='email'
@@ -149,17 +150,14 @@ const Login: React.FC = () => {
             className='form-input'
             placeholder='client@example.com'
           />
-                                   {' '}
         </div>
-                        {/* Пароль */}               {' '}
+
+        {/* Пароль */}
         <div className='form-group'>
-                                       {' '}
           <label htmlFor='password' className='form-label'>
-                                    Пароль                    {' '}
+            Пароль
           </label>
-                                       {' '}
           <div className='password-input-container'>
-                                               {' '}
             <input
               id='password'
               type={showPassword ? 'text' : 'password'}
@@ -169,54 +167,41 @@ const Login: React.FC = () => {
               className='form-input'
               placeholder='••••••••'
             />
-                                               {' '}
             <button
               type='button'
               onClick={togglePasswordVisibility}
               className='password-toggle'
               aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
             >
-                                          {/* Используем эмодзи для простоты */}
-                                          {showPassword ? '👁️' : '🔒'}         
-                           {' '}
+              {showPassword ? '👁️' : '🔒'}
             </button>
-                                           {' '}
           </div>
-                                   {' '}
         </div>
-                        {/* Сообщение от сервера/загрузка */}               {' '}
+
+        {/* Сообщение от сервера/загрузка */}
         {message.text && (
           <div className={`response-message ${message.type}`}>
-                                    {message.text}                   {' '}
+            {message.text}
           </div>
         )}
-                        {/* Контейнер для центрирования кнопки */}             
-         {' '}
+
+        {/* Кнопка Submit */}
         <div className='form-button-container'>
-                              {/* Кнопка Submit */}                   {' '}
           <button type='submit' disabled={isLoading} className='form-button'>
-                                    {isLoading ? 'Загрузка...' : 'Войти'}       
-                       {' '}
+            {isLoading ? 'Загрузка...' : 'Войти'}
           </button>
-                                   {' '}
         </div>
-                       {' '}
-        {/* Ссылка на регистрацию, перемещенная внутрь form-card */}           
-                   {' '}
+
+        {/* Ссылка на регистрацию */}
         <div className='login-link-container'>
-                                       {' '}
           <p className='register-link'>
-                                    Если у вас нет аккаунта -            {' '}
+            Если у вас нет аккаунта -
             <a href='/registration' className='login-link'>
-                            зарегистрируйтесь            {' '}
+              зарегистрируйтесь
             </a>
-                                           {' '}
           </p>
-                                   {' '}
         </div>
-                           {' '}
       </form>
-                   {' '}
     </div>
   );
 };

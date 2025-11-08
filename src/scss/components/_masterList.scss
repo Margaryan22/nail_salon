@@ -1,0 +1,98 @@
+// src/scss/MasterList.scss
+@import '../variables';
+
+.master-list-container {
+  margin: $spacing-unit * 2 0;
+
+  h2 {
+    color: $color-primary-gray;
+    margin-bottom: $spacing-unit * 2;
+  }
+}
+
+.master-list-card-wrapper {
+  background-color: $color-white; // Белый фон, как на скриншоте
+  border: 1px solid $color-medium-gray; // Тонкая рамка
+  border-radius: $border-radius; // Скругленные углы
+  padding: $spacing-unit * 2; // Внутренние отступы от краев до Swiper
+  box-shadow: $box-shadow-main; // Небольшая тень, как у блока услуг
+}
+// Контейнер для Swiper и кастомных стрелок
+.swiper-wrapper-custom {
+  position: relative; // Для позиционирования стрелок
+  padding: $spacing-unit; // Небольшой паддинг, чтобы стрелки не прижимались к краям
+}
+
+// Стили Swiper
+.mySwiper {
+  width: 100%;
+  height: auto;
+  padding: $spacing-unit 0; // Для отступа сверху/снизу, если нужна тень или пагинация
+}
+
+.swiper-slide {
+  width: auto !important; // Важно для slidesPerView: 'auto'
+  height: auto;
+  display: flex; // Чтобы MasterCard центрировался внутри слайда
+  justify-content: center;
+}
+
+// Стилизация кастомных навигационных кнопок
+.swiper-button-prev-custom,
+.swiper-button-next-custom {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background-color: $color-white; // Белый фон
+  border-radius: 50%;
+  box-shadow: $box-shadow-main; // Легкая тень
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10; // Чтобы стрелки были поверх слайдов
+  font-size: 1.5em; // Размер стрелок
+  color: $color-dark-gray; // Цвет стрелок
+  opacity: 0; // Изначально скрыты
+  transition: opacity 0.3s ease-in-out, background-color 0.2s; // Плавное появление
+  pointer-events: none; // Не реагируют на события, когда скрыты
+
+  &.visible {
+    opacity: 1;
+    pointer-events: all; // Реагируют на события, когда видимы
+  }
+
+  &:hover {
+    background-color: $color-light-gray;
+  }
+
+  // Деактивированное состояние
+  &.swiper-button-disabled-custom {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.swiper-button-prev-custom {
+  left: 0px; // Расположение слева
+}
+
+.swiper-button-next-custom {
+  right: 0px; // Расположение справа
+}
+
+// Убедитесь, что MasterCards имеет правильную ширину, чтобы Swiper мог их правильно отобразить
+.master-card {
+  width: 100%; // MasterCard внутри SwiperSlide занимает всю доступную ширину
+  max-width: 250px; // Но не больше указанного
+  margin: 0; // Убрать внешние отступы, Swiper сам управляет gap
+}
+
+// Переопределение базовых стилей Swiper для отключенного состояния, если требуется
+.swiper-button-disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}

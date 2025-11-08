@@ -1,0 +1,78 @@
+// src/scss/MasterCard.scss
+@import '../variables';
+
+.master-card {
+  min-width: 200px; // Минимальная ширина, чтобы карточки не были слишком узкими
+  width: 20%;
+  flex-shrink: 0; // Не сжимать при flex-wrap/overflow
+  padding: $spacing-unit * 2;
+  border: 1px solid $color-medium-gray;
+  border-radius: $border-radius;
+  text-align: center;
+  box-shadow: $box-shadow-subtle;
+  background-color: $color-white;
+}
+
+.master-image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $spacing-unit * 2;
+}
+
+.master-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: $color-light-gray; // Заглушка
+  background-size: cover;
+  background-position: center;
+  border: 2px solid $color-white;
+  box-shadow: $box-shadow-subtle;
+}
+
+.master-info {
+  .master-name {
+    font-size: 1em;
+    font-weight: 600;
+    color: $color-primary-gray;
+    margin: $spacing-unit 0;
+    // Для обрезки длинного имени, как на скрине
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .master-rank {
+    font-size: 0.9em;
+    color: $color-primary-gray;
+    opacity: 0.7;
+    margin-bottom: $spacing-unit * 2;
+  }
+}
+
+.master-rating {
+  color: $color-star-yellow;
+  margin-bottom: $spacing-unit * 2;
+  font-size: 0.9em;
+
+  .rating-value,
+  .review-count {
+    color: $color-primary-gray;
+    margin-left: $spacing-unit / 2;
+  }
+}
+
+.book-button {
+  background-color: $color-light-gray;
+  border: 1px solid $color-medium-gray;
+  padding: $spacing-unit $spacing-unit * 2.5;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  color: $color-dark-gray;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $color-medium-gray;
+  }
+}

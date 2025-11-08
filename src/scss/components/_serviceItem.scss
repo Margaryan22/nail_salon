@@ -1,0 +1,86 @@
+// src/scss/ServiceItem.scss
+@import '../variables';
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-unit * 2 0;
+  border-bottom: 1px solid $color-light-gray; // Используем более светлый разделитель
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.service-info-left {
+  display: flex;
+  align-items: center;
+}
+
+.service-image-container {
+  margin-right: $spacing-unit * 2;
+}
+
+.service-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  background-color: $color-medium-gray; // Заглушка
+  background-size: cover;
+}
+
+.service-details {
+  .service-name {
+    font-weight: 500;
+    color: $color-dark-gray;
+    margin: 0;
+  }
+
+  .service-category {
+    font-size: 0.85em;
+    color: $color-primary-gray;
+    opacity: 0.6; // Чуть прозрачный текст
+    margin: $spacing-unit / 2 0 0 0;
+  }
+}
+
+.service-info-right {
+  display: flex;
+  align-items: center;
+}
+
+.service-price-duration {
+  text-align: right;
+  margin-right: $spacing-unit * 3;
+
+  .service-price {
+    font-weight: bold;
+    color: $color-dark-gray;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .service-duration {
+    font-size: 0.9em;
+    color: $color-primary-gray;
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+.book-service-button {
+  background-color: $color-light-gray;
+  border: 1px solid $color-medium-gray;
+  padding: $spacing-unit $spacing-unit * 2;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  color: $color-dark-gray;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $color-medium-gray;
+  }
+}
