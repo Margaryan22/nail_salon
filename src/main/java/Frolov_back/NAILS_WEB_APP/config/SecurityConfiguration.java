@@ -40,9 +40,9 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                // .cors(Customizer.withDefaults()) // ❗️ УДАЛИТЕ ЭТУ СТРОКУ
+                // ❗️ НЕТ .cors() - полностью отключаем CORS проверки Spring Security
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").permitAll() // ❗️ Разрешаем ВСЕ запросы
+                        .requestMatchers("/**").permitAll()  // ✅ Разрешаем ВСЕ запросы
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
