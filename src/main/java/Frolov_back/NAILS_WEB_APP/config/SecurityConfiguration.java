@@ -39,21 +39,16 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // отключен, т.к. у нас JWT, а не сессии и куки
-            .cors(Customizer.withDefaults()) //используем cors из webconfig
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/**").permitAll() // Разрешить все API endpoints
-                    .requestMatchers("/api/v1/auth/**").permitAll()
-                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    .requestMatchers("/api/v1/users/register/**").permitAll()
-//                    .anyRequest().authenticated() //TODO: А ЭТУ ВЕРНУТЬ
-                    .anyRequest().permitAll() // РАЗРЕШАЕМ ВСЕ ЗАПРОСЫ //TODO: УБРАТЬ ЭТУ СТРОКУ (СЕЙЧАС ЭТО ВРЕМЕННОЕ РЕШЕНИЕ)
-            )
-            .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                // .cors(Customizer.withDefaults()) // ❗️ УДАЛИТЕ ЭТУ СТРОКУ
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/**").permitAll() // ❗️ Разрешаем ВСЕ запросы
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
