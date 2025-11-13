@@ -1,9 +1,10 @@
 package Frolov_back.NAILS_WEB_APP.controller;
 
-import Frolov_back.NAILS_WEB_APP.service.AppointmentService;
-import Frolov_back.NAILS_WEB_APP.service.DTO.AppointmentDto;
-import Frolov_back.NAILS_WEB_APP.service.DTO.CreateAppointmentRequestDto;
-import Frolov_back.NAILS_WEB_APP.service.DTO.TimeSlotDto;
+import Frolov_back.NAILS_WEB_APP.domain.for_shedule_master.TimeSlotEnum;
+import Frolov_back.NAILS_WEB_APP.service.appointment.AppointmentService;
+import Frolov_back.NAILS_WEB_APP.DTO.AppointmentDto;
+import Frolov_back.NAILS_WEB_APP.DTO.appointment.CreateAppointmentRequestDto;
+import Frolov_back.NAILS_WEB_APP.DTO.appointment.TimeSlotDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -84,7 +86,7 @@ public class AppointmentController {
     @GetMapping("/master/{masterId}/available-slots")
     public ResponseEntity<List<TimeSlotDto>> getAvailableTimeSlots(
             @PathVariable Long masterId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<TimeSlotDto> timeSlots = appointmentService.getAvailableTimeSlots(masterId, date);
         return ResponseEntity.ok(timeSlots);
     }
@@ -93,9 +95,14 @@ public class AppointmentController {
     @GetMapping("/availability")
     public ResponseEntity<Boolean> checkTimeSlotAvailability(
             @RequestParam Long masterId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
-        boolean available = appointmentService.isTimeSlotAvailable(masterId, startTime, endTime);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam Integer timeSlot) {
+        // Используем новую систему для проверки
+        boolean available = appointmentService.isTimeSlotAvailable(
+                masterId,
+                TimeSlotEnum.toStartDateTime(date, timeSlot),
+                TimeSlotEnum.toEndDateTime(date, timeSlot)
+        );
         return ResponseEntity.ok(available);
     }
 

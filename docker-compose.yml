@@ -1,15 +1,20 @@
+# docker-compose.yml - ИСПРАВЛЕННАЯ ВЕРСИЯ
 version: '3.8'
 services:
   app:
     build: .
-    network_mode: "host"  # ✅ Host network
+    ports:
+      - "3000:3000"
     environment:
       - SPRING_PROFILES_ACTIVE=default
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:13
-    network_mode: "host"  # ✅ Host network
     environment:
       POSTGRES_DB: nails_ver_2
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"

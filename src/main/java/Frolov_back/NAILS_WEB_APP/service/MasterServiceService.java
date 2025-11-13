@@ -1,7 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
-import Frolov_back.NAILS_WEB_APP.service.DTO.MasterServiceRequestDto;
-import Frolov_back.NAILS_WEB_APP.service.DTO.MasterServiceResponseDto;
+import Frolov_back.NAILS_WEB_APP.DTO.MasterServiceRequestDto;
+import Frolov_back.NAILS_WEB_APP.DTO.MasterServiceResponseDto;
 
 import java.util.List;
 

@@ -1,9 +1,9 @@
 package Frolov_back.NAILS_WEB_APP.controller;
 
-import Frolov_back.NAILS_WEB_APP.service.impl.RegistrationServiceFactory;
+import Frolov_back.NAILS_WEB_APP.impl.RegistrationServiceFactory;
 import Frolov_back.NAILS_WEB_APP.service.UserValidationService;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserResponseDto;
+import Frolov_back.NAILS_WEB_APP.DTO.UserRegistrationRequestDto;
+import Frolov_back.NAILS_WEB_APP.DTO.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

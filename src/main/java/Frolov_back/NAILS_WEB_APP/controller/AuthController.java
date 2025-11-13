@@ -1,9 +1,9 @@
 package Frolov_back.NAILS_WEB_APP.controller;
 
 import Frolov_back.NAILS_WEB_APP.security.AuthenticationService;
-import Frolov_back.NAILS_WEB_APP.service.DTO.JwtResponse;
-import Frolov_back.NAILS_WEB_APP.service.DTO.LoginRequest;
-import Frolov_back.NAILS_WEB_APP.service.DTO.RefreshTokenRequest;
+import Frolov_back.NAILS_WEB_APP.DTO.JwtResponse;
+import Frolov_back.NAILS_WEB_APP.DTO.LoginRequest;
+import Frolov_back.NAILS_WEB_APP.DTO.RefreshTokenRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

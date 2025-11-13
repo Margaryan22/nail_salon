@@ -1,8 +1,8 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
 import Frolov_back.NAILS_WEB_APP.domain.UserRoleType;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserResponseDto;
+import Frolov_back.NAILS_WEB_APP.DTO.UserRegistrationRequestDto;
+import Frolov_back.NAILS_WEB_APP.DTO.UserResponseDto;
 
 public interface RegistrationService {
 

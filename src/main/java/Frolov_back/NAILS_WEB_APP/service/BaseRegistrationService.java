@@ -1,7 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
 import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto;
+import Frolov_back.NAILS_WEB_APP.DTO.UserRegistrationRequestDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;

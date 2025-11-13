@@ -1,7 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.controller;
 
 import Frolov_back.NAILS_WEB_APP.service.NailServiceService;
-import Frolov_back.NAILS_WEB_APP.service.DTO.NailServiceDto;
+import Frolov_back.NAILS_WEB_APP.DTO.NailServiceDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

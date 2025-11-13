@@ -1,8 +1,8 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
 import Frolov_back.NAILS_WEB_APP.repository.SystemUserRepository;
-import Frolov_back.NAILS_WEB_APP.service.impl.RegistrationServiceFactory;
-import Frolov_back.NAILS_WEB_APP.service.DTO.UserRegistrationRequestDto;
+import Frolov_back.NAILS_WEB_APP.impl.RegistrationServiceFactory;
+import Frolov_back.NAILS_WEB_APP.DTO.UserRegistrationRequestDto;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

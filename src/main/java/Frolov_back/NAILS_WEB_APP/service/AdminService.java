@@ -1,7 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
 import Frolov_back.NAILS_WEB_APP.domain.AdminProfile;
-import Frolov_back.NAILS_WEB_APP.service.DTO.AdminProfileDto;
+import Frolov_back.NAILS_WEB_APP.DTO.AdminProfileDto;
 
 import java.util.Optional;
 

@@ -1,10 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
+import Frolov_back.NAILS_WEB_APP.DTO.*;
 import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
-import Frolov_back.NAILS_WEB_APP.service.DTO.*;
-
-import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
-import Frolov_back.NAILS_WEB_APP.service.DTO.*;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,7 +1,7 @@
 package Frolov_back.NAILS_WEB_APP.service;
 
-import Frolov_back.NAILS_WEB_APP.service.DTO.MasterProfileDto;
-import Frolov_back.NAILS_WEB_APP.service.DTO.MasterListItemDto; // DTO для списка мастеров
+import Frolov_back.NAILS_WEB_APP.DTO.MasterProfileDto;
+import Frolov_back.NAILS_WEB_APP.DTO.MasterListItemDto; // DTO для списка мастеров
 import Frolov_back.NAILS_WEB_APP.domain.MasterProfile; // Может понадобиться для возврата сущностей
 import Frolov_back.NAILS_WEB_APP.domain.SystemUser;
 

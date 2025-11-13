@@ -9,7 +9,7 @@ package Frolov_back.NAILS_WEB_APP.config;
 *@PreAuthorize("hasAnyRole('ADMIN', 'MASTER')") // Для админов и мастеров
 * */
 import Frolov_back.NAILS_WEB_APP.security.JwtAuthenticationFilter;
-import Frolov_back.NAILS_WEB_APP.service.impl.UserDetailsServiceImpl;
+import Frolov_back.NAILS_WEB_APP.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
