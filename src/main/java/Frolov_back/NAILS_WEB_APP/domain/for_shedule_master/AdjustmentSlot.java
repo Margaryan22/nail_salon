@@ -5,15 +5,15 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "master_schedule_slots")
-public class MasterScheduleSlot {
+@Table(name = "adjustment_slots")
+public class AdjustmentSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id", nullable = false)
-    private MasterWeeklySchedule schedule;
+    @JoinColumn(name = "adjustment_id", nullable = false)
+    private WeeklyScheduleAdjustment adjustment;
 
     @Column(name = "day_of_week", nullable = false)
     private Integer dayOfWeek;
@@ -21,11 +21,10 @@ public class MasterScheduleSlot {
     @Column(name = "available_slots", length = 100, nullable = false)
     private String availableSlots;
 
-    // Конструкторы
-    public MasterScheduleSlot() {}
+    public AdjustmentSlot() {}
 
-    public MasterScheduleSlot(MasterWeeklySchedule schedule, Integer dayOfWeek, String availableSlots) {
-        this.schedule = schedule;
+    public AdjustmentSlot(WeeklyScheduleAdjustment adjustment, Integer dayOfWeek, String availableSlots) {
+        this.adjustment = adjustment;
         this.dayOfWeek = dayOfWeek;
         this.availableSlots = availableSlots;
     }

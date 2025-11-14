@@ -2,6 +2,7 @@ package Frolov_back.NAILS_WEB_APP.repository;
 
 import Frolov_back.NAILS_WEB_APP.domain.ServiceCategory;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,4 +26,8 @@ public interface ServiceCategoryRepository extends BaseRepository<ServiceCategor
 
     // Проверить существование по имени
     boolean existsByName(String name);
+
+    // ДОБАВЛЯЕМ ДЛЯ ПРОВЕРКИ УНИКАЛЬНОСТИ ПРИ ОБНОВЛЕНИИ
+    @Query("SELECT COUNT(sc) > 0 FROM ServiceCategory sc WHERE sc.name = :name AND sc.categoryId != :categoryId")
+    boolean existsByNameAndCategoryIdNot(@Param("name") String name, @Param("categoryId") Long categoryId);
 }

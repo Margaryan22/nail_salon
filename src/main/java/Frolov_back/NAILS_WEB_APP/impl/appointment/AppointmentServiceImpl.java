@@ -7,7 +7,7 @@ import Frolov_back.NAILS_WEB_APP.domain.*;
 import Frolov_back.NAILS_WEB_APP.domain.for_shedule_master.TimeSlotEnum;
 import Frolov_back.NAILS_WEB_APP.repository.*;
 import Frolov_back.NAILS_WEB_APP.service.appointment.AppointmentService;
-import Frolov_back.NAILS_WEB_APP.service.for_shedule_master.MasterScheduleService;
+import Frolov_back.NAILS_WEB_APP.service.for_shedule_master.MasterScheduleManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +27,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final SystemUserRepository systemUserRepository;
     private final NailServiceRepository serviceRepository;
     private final MasterServiceEntityRepository masterServiceRepository;
-    private final MasterScheduleService masterScheduleService; // ДОБАВЛЯЕМ
+    private final MasterScheduleManagementService scheduleManagementService;
     private final MasterTimeOffRepository timeOffRepository;
 
     @Override
     @Transactional
     public AppointmentDto createAppointment(CreateAppointmentRequestDto requestDto) {
-        // Проверяем существование пользователей и услуги
+        // 1. ВАЛИДАЦИЯ ОСНОВНЫХ ДАННЫХ
+        validateAppointmentRequest(requestDto);
+
+        // 2. ПРОВЕРКА СУЩЕСТВОВАНИЯ СУЩНОСТЕЙ
         SystemUser client = systemUserRepository.findById(requestDto.getClientId())
                 .orElseThrow(() -> new RuntimeException("Клиент не найден"));
 
@@ -43,45 +46,71 @@ public class AppointmentServiceImpl implements AppointmentService {
         NailService service = serviceRepository.findById(requestDto.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Услуга не найдена"));
 
-        // Проверяем что мастер предоставляет эту услугу
+        // 3. ПРОВЕРКА ЧТО МАСТЕР ПРЕДОСТАВЛЯЕТ УСЛУГУ
         MasterServiceEntity masterService = masterServiceRepository
                 .findByMasterAndService(master, service)
                 .orElseThrow(() -> new RuntimeException("Мастер не предоставляет эту услугу"));
 
-        // ПРОВЕРЯЕМ ДОСТУПНОСТЬ СЛОТА через новую систему
-        if (!masterScheduleService.isTimeSlotAvailable(
+        // 4. ✅ ПРОВЕРКА ДОСТУПНОСТИ СЛОТА ЧЕРЕЗ НОВУЮ СИСТЕМУ
+        if (!scheduleManagementService.isTimeSlotAvailable(
                 master.getUserId(),
                 requestDto.getAppointmentDate(),
                 requestDto.getTimeSlot())) {
-            throw new RuntimeException("Выбранный временной слот недоступен");
+            throw new RuntimeException("Выбранный временной слот недоступен в расписании мастера");
         }
 
-        // ПРОВЕРЯЕМ НАЛОЖЕНИЯ С СУЩЕСТВУЮЩИМИ ЗАПИСЯМИ
+        // 5. РАСЧЕТ ВРЕМЕНИ И ПРОВЕРКА КОНФЛИКТОВ
         LocalDateTime startDateTime = TimeSlotEnum.toStartDateTime(requestDto.getAppointmentDate(), requestDto.getTimeSlot());
-        LocalDateTime endDateTime = TimeSlotEnum.toEndDateTime(requestDto.getAppointmentDate(), requestDto.getTimeSlot());
+        LocalDateTime endDateTime = calculateEndDateTime(startDateTime, service);
 
+        // 6. ПРОВЕРКА НАЛОЖЕНИЯ С СУЩЕСТВУЮЩИМИ ЗАПИСЯМИ
         if (!isTimeSlotAvailable(master.getUserId(), startDateTime, endDateTime)) {
             throw new RuntimeException("Время занято другой записью");
         }
 
-        // Определяем цену (индивидуальная цена мастера или базовая)
-        BigDecimal price = masterService.getMasterPrice() != null ?
-                masterService.getMasterPrice() : service.getBasePrice();
+        // 7. ПРОВЕРКА ВЫХОДНЫХ МАСТЕРА
+        if (hasTimeOffConflict(master, startDateTime, endDateTime)) {
+            throw new RuntimeException("Мастер в это время отсутствует");
+        }
 
-        // Создаем запись
-        Appointment appointment = new Appointment();
-        appointment.setClient(client);
-        appointment.setMaster(master);
-        appointment.setService(service);
-        appointment.setAppointmentDatetime(startDateTime);
-        appointment.setEndDatetime(endDateTime);
-        appointment.setPrice(price);
-        appointment.setStatus(AppointmentStatusType.BOOKED);
-        appointment.setNotes(requestDto.getNotes());
-
+        // 8. СОЗДАНИЕ ЗАПИСИ
+        Appointment appointment = buildAppointment(client, master, service, masterService, startDateTime, endDateTime, requestDto.getNotes());
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         return convertToDto(savedAppointment);
+    }
+
+    @Override
+    public List<TimeSlotDto> getAvailableTimeSlots(Long masterId, LocalDate date) {
+        validateDate(date);
+
+        SystemUser master = systemUserRepository.findById(masterId)
+                .orElseThrow(() -> new RuntimeException("Мастер не найден"));
+
+        // ✅ ПОЛУЧАЕМ ДОСТУПНЫЕ СЛОТЫ ИЗ НОВОЙ СИСТЕМЫ
+        List<Integer> availableSlotNumbers = scheduleManagementService.getAvailableSlotsForDay(masterId, date);
+
+        List<TimeSlotDto> timeSlots = new ArrayList<>();
+
+        // ФИЛЬТРУЕМ СЛОТЫ С УЧЕТОМ СУЩЕСТВУЮЩИХ ЗАПИСЕЙ
+        for (Integer slotNumber : availableSlotNumbers) {
+            LocalDateTime startTime = TimeSlotEnum.toStartDateTime(date, slotNumber);
+            LocalDateTime endTime = TimeSlotEnum.toEndDateTime(date, slotNumber);
+
+            // ДОПОЛНИТЕЛЬНО ПРОВЕРЯЕМ НЕТ ЛИ ЗАПИСЕЙ В ЭТО ВРЕМЯ
+            boolean hasAppointmentConflict = !appointmentRepository.isTimeSlotAvailable(master, startTime, endTime);
+            boolean hasTimeOffConflict = timeOffRepository.existsTimeOffConflict(master, startTime, endTime);
+
+            // СЛOT ДОСТУПЕН ТОЛЬКО ЕСЛИ:
+            // - ЕСТЬ В РАСПИСАНИИ
+            // - НЕТ КОНФЛИКТУЮЩИХ ЗАПИСЕЙ
+            // - НЕТ ВЫХОДНЫХ
+            boolean available = !hasAppointmentConflict && !hasTimeOffConflict;
+
+            timeSlots.add(new TimeSlotDto(startTime, endTime, available, slotNumber));
+        }
+
+        return timeSlots;
     }
 
     @Override
@@ -89,44 +118,60 @@ public class AppointmentServiceImpl implements AppointmentService {
         SystemUser master = systemUserRepository.findById(masterId)
                 .orElseThrow(() -> new RuntimeException("Мастер не найден"));
 
-        // 1. Проверяем выходные
-        if (hasTimeOffConflict(master, startTime, endTime)) {
-            return false;
-        }
+        // ПРОВЕРЯЕМ КОНФЛИКТЫ С СУЩЕСТВУЮЩИМИ ЗАПИСЯМИ
+        boolean noAppointmentConflict = appointmentRepository.isTimeSlotAvailable(master, startTime, endTime);
 
-        // 2. Проверяем существующие записи (старая логика для проверки наложений)
-        return appointmentRepository.isTimeSlotAvailable(master, startTime, endTime);
+        // ПРОВЕРЯЕМ ВЫХОДНЫЕ
+        boolean noTimeOffConflict = !timeOffRepository.existsTimeOffConflict(master, startTime, endTime);
+
+        return noAppointmentConflict && noTimeOffConflict;
     }
 
-    @Override
-    public List<TimeSlotDto> getAvailableTimeSlots(Long masterId, LocalDate date) {
-        List<TimeSlotDto> timeSlots = new ArrayList<>();
+    // === ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ===
 
-        SystemUser master = systemUserRepository.findById(masterId)
-                .orElseThrow(() -> new RuntimeException("Мастер не найден"));
-
-        // Получаем доступные слоты из новой системы
-        List<Integer> availableSlotNumbers = masterScheduleService.getAvailableSlotsForDay(masterId, date);
-
-        // Конвертируем в TimeSlotDto
-        for (Integer slotNumber : availableSlotNumbers) {
-            LocalDateTime startTime = TimeSlotEnum.toStartDateTime(date, slotNumber);
-            LocalDateTime endTime = TimeSlotEnum.toEndDateTime(date, slotNumber);
-
-            // Дополнительно проверяем нет ли записей в это время
-            boolean hasAppointmentConflict = !appointmentRepository.isTimeSlotAvailable(
-                    master,
-                    startTime,
-                    endTime
-            );
-
-            // Слот доступен только если он в расписании И нет конфликтующих записей
-            boolean available = !hasAppointmentConflict;
-
-            timeSlots.add(new TimeSlotDto(startTime, endTime, available, slotNumber));
+    private void validateAppointmentRequest(CreateAppointmentRequestDto requestDto) {
+        if (requestDto.getAppointmentDate().isBefore(LocalDate.now())) {
+            throw new RuntimeException("Дата записи не может быть в прошлом");
         }
 
-        return timeSlots;
+        if (requestDto.getTimeSlot() < 1 || requestDto.getTimeSlot() > 10) {
+            throw new RuntimeException("Некорректный номер слота. Допустимые значения: 1-10");
+        }
+    }
+
+    private void validateDate(LocalDate date) {
+        if (date.isBefore(LocalDate.now())) {
+            throw new RuntimeException("Нельзя получить слоты для прошедшей даты");
+        }
+    }
+
+    private LocalDateTime calculateEndDateTime(LocalDateTime startDateTime, NailService service) {
+        return startDateTime.plusMinutes(service.getBaseDuration());
+    }
+
+    private boolean hasTimeOffConflict(SystemUser master, LocalDateTime startTime, LocalDateTime endTime) {
+        return timeOffRepository.existsTimeOffConflict(master, startTime, endTime);
+    }
+
+    private Appointment buildAppointment(SystemUser client, SystemUser master, NailService service,
+                                         MasterServiceEntity masterService, LocalDateTime startTime,
+                                         LocalDateTime endTime, String notes) {
+        Appointment appointment = new Appointment();
+        appointment.setClient(client);
+        appointment.setMaster(master);
+        appointment.setService(service);
+        appointment.setAppointmentDatetime(startTime);
+        appointment.setEndDatetime(endTime);
+
+        // ИСПОЛЬЗУЕМ ИНДИВИДУАЛЬНУЮ ЦЕНУ МАСТЕРА ИЛИ БАЗОВУЮ
+        BigDecimal price = masterService.getMasterPrice() != null ?
+                masterService.getMasterPrice() : service.getBasePrice();
+        appointment.setPrice(price);
+
+        appointment.setStatus(AppointmentStatusType.BOOKED);
+        appointment.setNotes(notes);
+
+        return appointment;
     }
 
     // Остальные методы остаются без изменений
@@ -204,12 +249,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentRepository.findByAppointmentDatetimeBetween(startOfDay, endOfDay).stream()
                 .map(this::convertToDto)
                 .toList();
-    }
-
-    // ========== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ==========
-
-    private boolean hasTimeOffConflict(SystemUser master, LocalDateTime startTime, LocalDateTime endTime) {
-        return timeOffRepository.existsTimeOffConflict(master, startTime, endTime);
     }
 
     private AppointmentDto convertToDto(Appointment appointment) {

@@ -7,6 +7,7 @@ import Frolov_back.NAILS_WEB_APP.DTO.appointment.CreateAppointmentRequestDto;
 import Frolov_back.NAILS_WEB_APP.DTO.appointment.TimeSlotDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/appointments")
@@ -27,10 +29,19 @@ public class AppointmentController {
 
     @Operation(summary = "Создать новую запись")
     @PostMapping
-    public ResponseEntity<AppointmentDto> createAppointment(@RequestBody CreateAppointmentRequestDto requestDto) {
-        AppointmentDto appointment = appointmentService.createAppointment(requestDto);
-        return ResponseEntity.ok(appointment);
+    public ResponseEntity<?> createAppointment(@Valid @RequestBody CreateAppointmentRequestDto requestDto) {
+        try {
+            AppointmentDto appointment = appointmentService.createAppointment(requestDto);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage(),
+                    "timestamp", LocalDateTime.now()
+            ));
+        }
     }
+
 
     @Operation(summary = "Подтвердить запись (для мастера)")
     @PostMapping("/{appointmentId}/confirm")
@@ -84,11 +95,18 @@ public class AppointmentController {
 
     @Operation(summary = "Получить доступные слоты времени мастера")
     @GetMapping("/master/{masterId}/available-slots")
-    public ResponseEntity<List<TimeSlotDto>> getAvailableTimeSlots(
+    public ResponseEntity<?> getAvailableTimeSlots(
             @PathVariable Long masterId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<TimeSlotDto> timeSlots = appointmentService.getAvailableTimeSlots(masterId, date);
-        return ResponseEntity.ok(timeSlots);
+        try {
+            List<TimeSlotDto> timeSlots = appointmentService.getAvailableTimeSlots(masterId, date);
+            return ResponseEntity.ok(timeSlots);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
     }
 
     @Operation(summary = "Проверить доступность времени")
