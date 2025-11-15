@@ -6,8 +6,6 @@ import { Swiper as SwiperClass } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, A11y } from 'swiper/modules';
 
-// ... (импорты стилей) ...
-
 interface MasterListProps {
   masters: Master[];
 }

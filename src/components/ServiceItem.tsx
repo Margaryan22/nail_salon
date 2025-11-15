@@ -1,5 +1,4 @@
 import React from 'react';
-import { type Service } from '../types/MasterTypes'; // Используем Service из MasterTypes
 
 interface ServiceItemProps {
   service: {
@@ -34,9 +33,8 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ service }) => {
 
       <div className='service-info-right'>
         <div className='service-price-duration'>
-          {/* Используем toLocaleString для форматирования числа */}
           <p className='service-price'>
-            от {priceMin.toLocaleString('ru-RU')} RUB
+            от {priceMin.toLocaleString('ru-RU')} руб.
           </p>
           <p className='service-duration'>{duration}</p>
         </div>
