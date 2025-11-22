@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// src/components/Registration/MasterRegistrationForm.tsx
+
+import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+
+import { useAppDispatch, useAppSelector } from '../../hooks/index';
+import { register, clearServerMessage } from '../../redux/authSlice';
+import type { RegisterDto } from '../../types/userTypes';
 
 import {
   emailValidation,
   requiredValidation,
   passwordValidation,
-  maxLengthValidation,
   PERMISSIVE_NAME_REGEX,
   PASSWORD_REGEX,
 } from '../../utils/validationRules';
@@ -16,45 +22,40 @@ import {
   isValidPhoneNumber,
 } from '../../utils/phoneFormatter';
 
-import type { ApiResponse, MasterData } from '../../types/userTypes';
+const MASTER_SPECIALIZATIONS = [
+  'Маникюр',
+  'Педикюр',
+  'Наращивание',
+  'Диазйн',
+] as const;
 
-// Типы данных формы
 interface MasterFormData {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
   phone: string;
-  specializations: string; // ИЗМЕНЕНО: теперь это одна строка для Select
+  specialization: string;
   description: string;
-  workExperience: number; // Опыт работы в годах
+  workExperience: number | '';
 }
 
-// Фиксированный список специализаций для мастера
-const MASTER_SPECIALIZATIONS = ['Ногти', 'Брови/ресницы', 'Волосы'];
+const MasterRegistrationForm: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading, serverMessage, isAuthenticated } = useAppSelector(
+    (state) => state.auth
+  );
 
-interface FormProps {
-  onRegister: (data: MasterData) => Promise<ApiResponse>;
-  isLoading: boolean;
-  serverMessage: { text: string; status: number | null };
-}
-
-const MasterRegistrationForm: React.FC<FormProps> = ({
-  onRegister,
-  isLoading,
-  serverMessage,
-}) => {
-  const [responseMessage, setResponseMessage] = useState<{
-    type: 'success' | 'error' | 'loading' | null;
-    message: string;
-  }>({ type: null, message: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     handleSubmit,
     control,
     setValue,
     watch,
-    formState: { errors, isSubmitted, isValid },
+    setError,
+    formState: { errors },
   } = useForm<MasterFormData>({
     defaultValues: {
       email: '',
@@ -62,102 +63,92 @@ const MasterRegistrationForm: React.FC<FormProps> = ({
       firstName: '',
       lastName: '',
       phone: '+7',
-      specializations: '', // Дефолтное значение для Select (пустая строка соответствует disabled option)
+      specialization: '',
       description: '',
-      workExperience: 0,
+      workExperience: '',
     },
-    mode: 'onSubmit',
+    mode: 'onBlur',
   });
 
-  const phoneValue = watch('phone'); // Эффект для форматирования телефона
+  const phoneValue = watch('phone');
 
+  // Форматирование телефона
   useEffect(() => {
-    if (phoneValue && phoneValue.length > 0) {
+    if (!phoneValue || phoneValue === '') {
+      setValue('phone', '+7', { shouldValidate: false });
+    } else {
       const formatted = formatPhoneNumber(phoneValue);
       if (formatted !== phoneValue) {
         setValue('phone', formatted, { shouldValidate: true });
       }
-    } else if (phoneValue === '') {
-      setValue('phone', '+7', { shouldValidate: true });
     }
-  }, [phoneValue, setValue]); // Эффект для отображения серверного сообщения
+  }, [phoneValue, setValue]);
 
+  // Очистка сообщения
   useEffect(() => {
-    if (serverMessage && serverMessage.text) {
-      setResponseMessage({
-        type:
-          serverMessage.status &&
-          serverMessage.status >= 200 &&
-          serverMessage.status < 300
-            ? 'success'
-            : 'error',
-        message: serverMessage.text,
-      });
+    return () => {
+      dispatch(clearServerMessage());
+    };
+  }, [dispatch]);
+
+  // Редирект после успеха
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/profile', { replace: true });
     }
-  }, [serverMessage]); // Функция для отправки формы
+  }, [isAuthenticated, navigate]);
 
-  const onSubmit = useCallback(
-    async (data: MasterFormData) => {
-      setResponseMessage({
-        type: 'loading',
-        message: 'Регистрация мастера...',
-      });
-
-      const phoneParsed = parsePhoneNumber(data.phone);
-
-      const fullData: MasterData = {
-        role: 'MASTER',
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: `+${phoneParsed}`, // ИЗМЕНЕНИЕ ЗДЕСЬ: Специализация теперь чистая строка
-        specialization: data.specializations, // БЫЛО: [data.specializations]
-        description: data.description,
-        workExperience: data.workExperience,
-      };
-
-      console.log('Данные для отправки MASTER:', fullData);
-
-      try {
-        const result = await onRegister(fullData);
-        if (result.status >= 200 && result.status < 300) {
-          setResponseMessage({
-            type: 'success',
-            message: result.message || 'Регистрация прошла успешно!',
-          });
-        } else {
-          setResponseMessage({
-            type: 'error',
-            message: result.message || 'Произошла ошибка регистрации.',
-          });
-        }
-      } catch (error) {
-        console.error('Registration submission error:', error);
-        setResponseMessage({
-          type: 'error',
-          message: 'Не удалось связаться с сервером.',
+  // Обработка серверных ошибок
+  useEffect(() => {
+    if (serverMessage.text) {
+      const msg = serverMessage.text.toLowerCase();
+      if (msg.includes('email')) {
+        setError('email', {
+          type: 'server',
+          message: 'Этот email уже зарегистрирован',
         });
       }
-    },
-    [onRegister]
-  );
+      if (msg.includes('phone') || msg.includes('телефон')) {
+        setError('phone', {
+          type: 'server',
+          message: 'Этот номер телефона уже используется',
+        });
+      }
+    }
+  }, [serverMessage.text, setError]);
+
+  const onSubmit = (data: MasterFormData) => {
+    const registerData: RegisterDto = {
+      email: data.email.trim(),
+      password: data.password,
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+      phone: parsePhoneNumber(data.phone),
+      role: 'MASTER',
+      specialization: data.specialization,
+      description: data.description.trim(),
+      workExperience:
+        data.workExperience === '' ? 0 : Number(data.workExperience),
+    };
+
+    dispatch(register(registerData));
+  };
+
+  const togglePassword = () => setShowPassword((prev) => !prev);
+  const hasError = (field: keyof MasterFormData) => !!errors[field];
 
   return (
-    <div className='registration-container'>
+    <div className='registration-form-wrapper'>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className='registration-form'
+        className='registration-form master-form'
         noValidate
       >
-                <p className='form-title'>Регистрация Мастера</p>       
-        {/* Имя */}       
+        <p className='form-title'>Регистрация мастера</p>
+
+        {/* Имя */}
         <div className='form-group'>
-                   
-          <label htmlFor='firstName' className='form-label'>
-                        Имя          
-          </label>
-                   
+          <label className='form-label'>Имя</label>
           <Controller
             name='firstName'
             control={control}
@@ -165,32 +156,29 @@ const MasterRegistrationForm: React.FC<FormProps> = ({
               ...requiredValidation('Имя')(),
               pattern: {
                 value: PERMISSIVE_NAME_REGEX,
-                message: 'Имя: только буквы, мин. 2 символа.',
+                message: 'Только буквы, минимум 2 символа',
               },
             }}
             render={({ field }) => (
               <input
                 {...field}
                 type='text'
+                placeholder='Александра'
                 className={`form-input ${
-                  errors.firstName && isSubmitted ? 'input-error' : ''
+                  hasError('firstName') ? 'input-error' : ''
                 }`}
+                disabled={isLoading}
               />
             )}
           />
-                   
-          {errors.firstName && isSubmitted && (
-            <p className='error-message'>{errors.firstName.message}</p>
+          {hasError('firstName') && (
+            <p className='error-message'>{errors.firstName?.message}</p>
           )}
-                 
         </div>
-                {/* Фамилия */}       
+
+        {/* Фамилия */}
         <div className='form-group'>
-                   
-          <label htmlFor='lastName' className='form-label'>
-                        Фамилия          
-          </label>
-                   
+          <label className='form-label'>Фамилия</label>
           <Controller
             name='lastName'
             control={control}
@@ -198,70 +186,57 @@ const MasterRegistrationForm: React.FC<FormProps> = ({
               ...requiredValidation('Фамилия')(),
               pattern: {
                 value: PERMISSIVE_NAME_REGEX,
-                message: 'Фамилия: только буквы, мин. 2 символа.',
+                message: 'Только буквы, минимум 2 символа',
               },
             }}
             render={({ field }) => (
               <input
                 {...field}
                 type='text'
+                placeholder='Кузнецова'
                 className={`form-input ${
-                  errors.lastName && isSubmitted ? 'input-error' : ''
+                  hasError('lastName') ? 'input-error' : ''
                 }`}
+                disabled={isLoading}
               />
             )}
           />
-                   
-          {errors.lastName && isSubmitted && (
-            <p className='error-message'>{errors.lastName.message}</p>
+          {hasError('lastName') && (
+            <p className='error-message'>{errors.lastName?.message}</p>
           )}
-                 
         </div>
-                {/* Телефон */}       
+
+        {/* Телефон */}
         <div className='form-group'>
-                   
-          <label htmlFor='phone' className='form-label'>
-                        Телефон          
-          </label>
-                   
+          <label className='form-label'>Телефон</label>
           <Controller
             name='phone'
             control={control}
             rules={{
               ...requiredValidation('Телефон')(),
-              validate: (value: string) => {
-                if (!isValidPhoneNumber(value)) {
-                  return 'Пожалуйста, введите полный российский номер телефона.';
-                }
-                return true;
-              },
+              validate: (v) =>
+                isValidPhoneNumber(v) || 'Введите полный номер (+7 и 10 цифр)',
             }}
             render={({ field }) => (
               <input
-                {...field} // ИСПРАВЛЕНО: Кастомный onChange для форматирования должен быть здесь
-                onChange={(e) => field.onChange(e.target.value)}
-                type='tel' // ИСПРАВЛЕНО: maxLength={22} должен быть внутри JSX-тега
-                maxLength={22}
+                {...field}
+                type='tel'
+                placeholder='+7 (999) 123-45-67'
                 className={`form-input ${
-                  errors.phone && isSubmitted ? 'input-error' : ''
+                  hasError('phone') ? 'input-error' : ''
                 }`}
-                placeholder='+7 (___) - ___ - __ - __'
+                disabled={isLoading}
               />
             )}
           />
-                   
-          {errors.phone && isSubmitted && (
-            <p className='error-message'>{errors.phone.message}</p>
+          {hasError('phone') && (
+            <p className='error-message'>{errors.phone?.message}</p>
           )}
-                 
         </div>
-                {/* Email */}       
+
+        {/* Email */}
         <div className='form-group'>
-                   
-          <label htmlFor='email' className='form-label'>
-                        Email          
-          </label>
-                   
+          <label className='form-label'>Email</label>
           <Controller
             name='email'
             control={control}
@@ -269,27 +244,23 @@ const MasterRegistrationForm: React.FC<FormProps> = ({
             render={({ field }) => (
               <input
                 {...field}
-                type='text'
+                type='email'
+                placeholder='master@nails-salon.ru'
                 className={`form-input ${
-                  errors.email && isSubmitted ? 'input-error' : ''
+                  hasError('email') ? 'input-error' : ''
                 }`}
-                placeholder='example@mail.ru'
+                disabled={isLoading}
               />
             )}
           />
-                   
-          {errors.email && isSubmitted && (
-            <p className='error-message'>{errors.email.message}</p>
+          {hasError('email') && (
+            <p className='error-message'>{errors.email?.message}</p>
           )}
-                 
         </div>
-                {/* Пароль */}       
-        <div className='form-group'>
-                   
-          <label htmlFor='password' className='form-label'>
-                        Пароль          
-          </label>
-                   
+
+        {/* Пароль */}
+        <div className='form-group password-group'>
+          <label className='form-label'>Пароль</label>
           <Controller
             name='password'
             control={control}
@@ -298,168 +269,155 @@ const MasterRegistrationForm: React.FC<FormProps> = ({
               pattern: {
                 value: PASSWORD_REGEX,
                 message:
-                  'Пароль: мин. 8 символов, 1 заглавная, 1 цифра, 1 спецсимвол (@$!%*?&).',
+                  'Минимум 8 символов: заглавная буква, цифра и спецсимвол',
               },
             }}
             render={({ field }) => (
-              <input
-                {...field}
-                type='password'
-                className={`form-input ${
-                  errors.password && isSubmitted ? 'input-error' : ''
-                }`}
-                autoComplete='new-password'
-              />
+              <div className='password-input-container'>
+                <input
+                  {...field}
+                  type={showPassword ? 'text' : 'password'}
+                  className={`form-input ${
+                    hasError('password') ? 'input-error' : ''
+                  }`}
+                  autoComplete='new-password'
+                  disabled={isLoading}
+                />
+                <button
+                  type='button'
+                  className='password-toggle'
+                  onClick={togglePassword}
+                  disabled={isLoading}
+                >
+                  {showPassword ? 'Скрыть' : 'Показать'}
+                </button>
+              </div>
             )}
           />
-                   
-          {errors.password && isSubmitted && (
-            <p className='error-message'>{errors.password.message}</p>
+          {hasError('password') && (
+            <p className='error-message'>{errors.password?.message}</p>
           )}
-                 
         </div>
-                {/* Специализация (Выпадающий список) */}       
+
+        {/* Специализация */}
         <div className='form-group'>
-                   
-          <label htmlFor='specializations' className='form-label'>
-                        Специализация          
-          </label>
-                   
+          <label className='form-label'>Специализация</label>
           <Controller
-            name='specializations'
+            name='specialization'
             control={control}
             rules={requiredValidation('Специализация')()}
             render={({ field }) => (
               <select
                 {...field}
-                className={`form-input ${
-                  errors.specializations && isSubmitted ? 'input-error' : ''
+                className={`form-input form-select ${
+                  hasError('specialization') ? 'input-error' : ''
                 }`}
+                disabled={isLoading}
               >
-                               
                 <option value='' disabled>
-                                    Выберите специализацию                
+                  Выберите специализацию
                 </option>
-                               
-                {MASTER_SPECIALIZATIONS.map((option) => (
-                  <option key={option} value={option}>
-                                        {option}                 
+                {MASTER_SPECIALIZATIONS.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
                   </option>
                 ))}
-                             
               </select>
             )}
           />
-                   
-          {errors.specializations && isSubmitted && (
-            <p className='error-message'>{errors.specializations.message}</p>
+          {hasError('specialization') && (
+            <p className='error-message'>{errors.specialization?.message}</p>
           )}
-                 
         </div>
-        {/* Опыт работы (Work Experience) */}
+
+        {/* Опыт работы */}
         <div className='form-group'>
-                   
-          <label htmlFor='workExperience' className='form-label'>
-                        Опыт работы (лет)          
-          </label>
-                   
+          <label className='form-label'>Опыт работы (лет)</label>
           <Controller
             name='workExperience'
             control={control}
             rules={{
-              ...requiredValidation('Опыт работы')(),
-              min: {
-                value: 0,
-                message: 'Опыт работы не может быть отрицательным.',
-              },
-              // ИСПРАВЛЕНО: Добавлено максимальное ограничение (чтобы избежать 445)
-              max: {
-                value: 60,
-                message: 'Опыт работы не может превышать 60 лет.',
-              },
-              pattern: {
-                value: /^\d+$/,
-                message: 'Опыт работы должен быть целым числом.',
-              },
+              required: 'Укажите опыт работы',
+              min: { value: 0, message: 'Не может быть отрицательным' },
+              max: { value: 50, message: 'Максимум 50 лет' },
             }}
             render={({ field }) => (
               <input
                 {...field}
-                // Дополнительная логика для корректного отображения и парсинга number:
-                // Устанавливаем 0, если поле пусто, и отображаем пусто, если 0 (для required валидации)
+                type='number'
+                min='0'
+                max='50'
+                placeholder='5'
+                className={`form-input ${
+                  hasError('workExperience') ? 'input-error' : ''
+                }`}
+                disabled={isLoading}
                 onChange={(e) =>
                   field.onChange(
-                    e.target.value ? parseInt(e.target.value, 10) : 0
+                    e.target.value === '' ? '' : Number(e.target.value)
                   )
                 }
-                value={field.value === 0 ? '' : field.value}
-                type='number'
-                inputMode='numeric'
-                className={`form-input ${
-                  errors.workExperience && isSubmitted ? 'input-error' : ''
-                }`}
               />
             )}
           />
-                   
-          {errors.workExperience && isSubmitted && (
-            <p className='error-message'>{errors.workExperience.message}</p>
+          {hasError('workExperience') && (
+            <p className='error-message'>{errors.workExperience?.message}</p>
           )}
-                 
         </div>
-                {/* Описание */}       
+
+        {/* Описание */}
         <div className='form-group'>
-                   
-          <label htmlFor='description' className='form-label'>
-                        О себе / Опыт работы          
-          </label>
-                   
+          <label className='form-label'>О себе</label>
           <Controller
             name='description'
             control={control}
             rules={{
-              ...requiredValidation('О себе / Опыт работы')(),
-              ...maxLengthValidation(500)('О себе / Опыт работы'),
+              required: 'Расскажите немного о себе',
+              maxLength: { value: 500, message: 'Максимум 500 символов' },
             }}
             render={({ field }) => (
               <textarea
                 {...field}
-                className={`form-textarea ${
-                  errors.description && isSubmitted ? 'input-error' : ''
-                }`}
                 rows={4}
-              ></textarea>
+                placeholder='Я мастер маникюра с многолетним опытом...'
+                className={`form-textarea ${
+                  hasError('description') ? 'input-error' : ''
+                }`}
+                disabled={isLoading}
+              />
             )}
           />
-                   
-          {errors.description && isSubmitted && (
-            <p className='error-message'>{errors.description.message}</p>
+          {hasError('description') && (
+            <p className='error-message'>{errors.description?.message}</p>
           )}
-                 
         </div>
-               
-        {responseMessage.type && (
-          <div className={`response-message ${responseMessage.type}`}>
-                        {responseMessage.message}         
+
+        {/* Сообщение от сервера */}
+        {serverMessage.text && (
+          <div
+            className={`response-message ${
+              serverMessage.status &&
+              serverMessage.status >= 200 &&
+              serverMessage.status < 300
+                ? 'success'
+                : 'error'
+            }`}
+          >
+            {serverMessage.text}
           </div>
         )}
-               
-        <button
-          type='submit'
-          className={`form-button ${isSubmitted && !isValid ? 'error' : ''}`}
-          disabled={isLoading || (isSubmitted && !isValid)}
-        >
-                   
-          {isLoading
-            ? 'Регистрация...'
-            : isSubmitted && !isValid
-            ? 'Ошибка валидации'
-            : 'Зарегистрироваться'}
-                 
+
+        <button type='submit' className='form-button' disabled={isLoading}>
+          {isLoading ? 'Отправляем заявку...' : 'Стать мастером'}
         </button>
-             
+
+        <p className='login-link-container'>
+          Уже есть аккаунт?{' '}
+          <Link to='/login' className='login-link'>
+            Войти
+          </Link>
+        </p>
       </form>
-         
     </div>
   );
 };

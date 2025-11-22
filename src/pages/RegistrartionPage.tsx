@@ -1,214 +1,90 @@
-import React, { useState, useCallback } from 'react';
-import axios, { AxiosError } from 'axios'; // Импортируем axios и AxiosError
+// src/pages/Registration/RegistrationPage.tsx
 
-// Импортируем обновленные типы
-import type {
-  Role,
-  RegistrationData,
-  ApiResponse,
-  AdminData,
-  MasterData,
-  ClientData,
-} from '../types/userTypes';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-// Импортируем все компоненты форм
+import { useAppSelector } from '../hooks/index';
+
 import ClientRegistrationForm from '../components/Registration/ClientRegistrationForm';
 import MasterRegistrationForm from '../components/Registration/MasterRegistrationForm';
 import AdminRegistrationForm from '../components/Registration/AdminRegistrationForm';
 
-/**
- * Реальный POST запрос на регистрацию с использованием axios.
- */
-const API_REGISTER_URL = 'http://87.242.87.228:8080/api/v1/auth/register';
+const RegistrationPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAppSelector(
+    (state: { auth: any }) => state.auth
+  );
 
-const apiRegister = async (data: RegistrationData): Promise<ApiResponse> => {
-  try {
-    // Использование axios.post:
-    // - Автоматически устанавливает Content-Type: application/json.
-    // - Автоматически парсит ответ в response.data.
-    // - Бросает исключение для статусов 4xx/5xx.
-    const response = await axios.post(API_REGISTER_URL, data); // Если код дошел сюда, статус - 2xx (успех)
+  // Локальное состояние для активной вкладки
+  const [activeForm, setActiveForm] = useState<'client' | 'master' | 'admin'>(
+    'client'
+  );
 
-    const responseData = response.data;
-
-    return {
-      status: response.status,
-      message:
-        responseData.message ||
-        `Успешная регистрация для ${data.firstName} (${data.role})!`,
-    };
-  } catch (error) {
-    const axiosError = error as AxiosError;
-    console.error('Ошибка Axios при регистрации:', axiosError);
-
-    if (axiosError.response) {
-      // Ошибка HTTP (4xx или 5xx)
-      const status = axiosError.response.status;
-      const responseData = axiosError.response.data as {
-        message?: string;
-        error?: string;
-      };
-
-      return {
-        status: status,
-        message:
-          responseData.message ||
-          responseData.error ||
-          'Ошибка регистрации. Проверьте введенные данные.',
-      };
-    } else if (axiosError.request) {
-      // Ошибка запроса (нет ответа от сервера)
-      return {
-        status: 503, // Service Unavailable (или 500, в зависимости от предпочтений)
-        message: 'Проблема с подключением к серверу. Сервер недоступен.',
-      };
-    } else {
-      // Другие ошибки
-      return {
-        status: 500,
-        message: 'Произошла неизвестная ошибка при отправке запроса.',
-      };
+  // Редирект, если уже залогинен
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = user.role;
+      setTimeout(() => {
+        switch (role) {
+          case 'ADMIN':
+            navigate('/admin/dashboard', { replace: true });
+            break;
+          case 'MASTER':
+            navigate('/master/dashboard', { replace: true });
+            break;
+          case 'CLIENT':
+          default:
+            navigate('/profile', { replace: true });
+            break;
+        }
+      }, 800);
     }
-  }
-};
-
-// Определяем общий тип пропсов для всех форм, используя дженерик для onRegister
-interface FormProps<T extends RegistrationData> {
-  onRegister: (data: T) => Promise<ApiResponse>;
-  isLoading: boolean;
-  serverMessage: { text: string; status: number | null };
-}
-
-const Registration: React.FC = () => {
-  const [role, setRole] = useState<Role>('CLIENT');
-  const [isLoading, setIsLoading] = useState(false);
-  const [serverMessage, setServerMessage] = useState<{
-    text: string;
-    status: number | null;
-  }>({ text: '', status: null }); // Универсальный обработчик регистрации
-
-  const handleRegister = useCallback(
-    async (data: RegistrationData): Promise<ApiResponse> => {
-      setIsLoading(true);
-      setServerMessage({ text: 'Отправка данных...', status: null });
-      console.log('Данные для отправки:', data);
-
-      try {
-        const response = await apiRegister(data);
-        setServerMessage({ text: response.message, status: response.status });
-        return response;
-      } catch (error) {
-        const errorMessage: ApiResponse = {
-          status: 500,
-          message: 'Произошла ошибка сети/сервера.',
-        };
-        setServerMessage({
-          text: errorMessage.message,
-          status: errorMessage.status,
-        });
-        return errorMessage;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  ); // Вычисление класса сообщения
-
-  const getMessageClass = () => {
-    if (
-      serverMessage.status &&
-      serverMessage.status >= 200 &&
-      serverMessage.status < 300
-    )
-      return 'success';
-    if (
-      serverMessage.status === 400 ||
-      serverMessage.status === 409 ||
-      serverMessage.status === 500 ||
-      serverMessage.status === 503
-    )
-      return 'error';
-    if (isLoading) return 'loading';
-    return '';
-  };
-
-  const messageClass = getMessageClass(); // Логика рендеринга соответствующей формы // Примечание: В компонентах форм (ClientRegistrationForm и т.д.) добавьте mode: 'onSubmit' в useForm
-
-  const renderForm = () => {
-    switch (role) {
-      case 'CLIENT':
-        const clientProps: FormProps<ClientData> = {
-          onRegister: handleRegister as (
-            data: ClientData
-          ) => Promise<ApiResponse>,
-          isLoading,
-          serverMessage,
-        };
-        return <ClientRegistrationForm {...clientProps} />;
-      case 'MASTER':
-        const masterProps: FormProps<MasterData> = {
-          onRegister: handleRegister as (
-            data: MasterData
-          ) => Promise<ApiResponse>,
-          isLoading,
-          serverMessage,
-        };
-        return <MasterRegistrationForm {...masterProps} />;
-      case 'ADMIN':
-        const adminProps: FormProps<AdminData> = {
-          onRegister: handleRegister as (
-            data: AdminData
-          ) => Promise<ApiResponse>,
-          isLoading,
-          serverMessage,
-        };
-        return <AdminRegistrationForm {...adminProps} />;
-      default:
-        return null;
-    }
-  };
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <div className='registration-container'>
-                  <h2>Регистрация нового пользователя</h2>           
-      {/* Блок переключения ролей (табов) */}           
-      <div className='role-tabs'>
-                               
-        {(['CLIENT', 'MASTER', 'ADMIN'] as Role[]).map((r) => (
+      {' '}
+      {/* ← одна карточка, как у логина */}
+      <div className='registration-form'>
+        {' '}
+        {/* ← белая карточка из твоего SCSS */}
+        <h2 className='form-title'>Создать аккаунт</h2>
+        {/* Вкладки — используем твои классы из SCSS */}
+        <div className='role-tabs'>
           <button
-            key={r}
-            className={`tab-button ${role === r ? 'active-tab' : ''}`}
-            onClick={() => {
-              setRole(r);
-              setServerMessage({ text: '', status: null });
-            }}
-            disabled={isLoading}
+            className={`tab-button ${
+              activeForm === 'client' ? 'active-tab' : ''
+            }`}
+            onClick={() => setActiveForm('client')}
           >
-                                               
-            {r === 'CLIENT' ? 'Клиент' : r === 'MASTER' ? 'Мастер' : 'Админ'}   
-                                       
+            Клиент
           </button>
-        ))}
-                           
-      </div>
-                  {/* Рендеринг активной формы */}      {renderForm()}         
-       
-      {/* Отображаем сообщение (кроме статуса 400 - ошибки валидации внутри формы) */}
-                       
-      {serverMessage.text && serverMessage.status !== 400 && (
-        <div className={`response-message ${messageClass}`}>
-                                       
-          <p>
-                           <strong>Статус:</strong>
-            {serverMessage.status || '...'}                 
-            <strong> Сообщение:</strong> {serverMessage.text}                   
-          </p>
-                                   
+          <button
+            className={`tab-button ${
+              activeForm === 'master' ? 'active-tab' : ''
+            }`}
+            onClick={() => setActiveForm('master')}
+          >
+            Мастер
+          </button>
+          <button
+            className={`tab-button ${
+              activeForm === 'admin' ? 'active-tab' : ''
+            }`}
+            onClick={() => setActiveForm('admin')}
+          >
+            Администратор
+          </button>
         </div>
-      )}
-                   
+        {/* Формы — переключаются локально */}
+        <div>
+          {activeForm === 'client' && <ClientRegistrationForm />}
+          {activeForm === 'master' && <MasterRegistrationForm />}
+          {activeForm === 'admin' && <AdminRegistrationForm />}
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Registration;
+export default RegistrationPage;

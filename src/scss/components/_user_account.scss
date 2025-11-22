@@ -1,0 +1,92 @@
+// src/scss/UserAccount.scss
+
+// Используем переменную, если она определена в вашем проекте,
+// или замените на фиксированное значение, например: #6d28d9
+$color-primary: #6d28d9;
+$color-text-light: #6b7280;
+
+.user-account {
+  // Стили для карточки/модального окна
+  padding: 24px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 320px;
+  margin: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.user-avatar {
+  // Контейнер аватара
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.avatar-placeholder {
+  // Стили для инициалов
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: $color-primary;
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-details {
+  flex-grow: 1;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 1.1em;
+  color: #374151;
+  font-weight: 700;
+}
+
+.user-role {
+  margin: 2px 0;
+  font-size: 0.85em;
+  color: $color-primary;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-email {
+  margin: 2px 0 0;
+  font-size: 0.8em;
+  color: $color-text-light;
+}
+
+.logout-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #f87171; /* Светло-красный для кнопки выхода */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+
+  &:hover {
+    background-color: #ef4444;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}

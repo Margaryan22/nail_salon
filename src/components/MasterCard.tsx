@@ -1,35 +1,37 @@
+// src/components/MasterList/MasterCard.tsx (ИСПРАВЛЕНО)
+
 import React from 'react';
-import { type Master } from '../types/MasterTypes';
+import type { MasterCardType } from '../types/userTypes';
 
 interface MasterCardProps {
-  master: Master;
+  master: MasterCardType;
 }
 
 const MasterCard: React.FC<MasterCardProps> = ({ master }) => {
-  const { firstName, lastName, rank, rating, reviewCount, imageUrl } = master;
+  // АПИ ВЕРНУЛ ТОЛЬКО ЭТИ ПОЛЯ. masterProfile ОТСУТСТВУЕТ.
+  const { firstName, lastName } = master;
 
-  // Предполагаем, что SCSS файл MasterCard.scss импортирован
+  const imageUrl = '/default-master-avatar.jpg'; // fallback
+
   return (
     <div className='master-card'>
       <div className='master-image-container'>
         <div
           className='master-image'
           style={{ backgroundImage: `url(${imageUrl})` }}
-        >
-          {/*  */}
-        </div>
+        />
       </div>
+
       <div className='master-info'>
         <h3 className='master-name'>
           {firstName} {lastName}
         </h3>
-        <p className='master-rank'>{rank}</p>
-        <div className='master-rating'>
-          <span className='star-icon'>⭐️</span>
-          <span className='rating-value'>{rating}</span>
-          <span className='review-count'>({reviewCount})</span>
-        </div>
-        <button className='book-button'>Записаться</button>
+
+        <p className='master-specialization'>Специализация</p>
+
+        <button className='book-button' type='button'>
+          Записаться
+        </button>
       </div>
     </div>
   );

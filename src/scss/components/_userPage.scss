@@ -16,3 +16,56 @@
 .content-block {
   margin-bottom: $spacing-unit * 5;
 }
+.user-profile-button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.user-avatar-large {
+  width: 80px;
+  height: 80px;
+  background: #6d28d9;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.avatar-text {
+  font-size: 32px;
+}
+
+.user-greeting h1 {
+  margin: 0;
+  font-size: 1.8em;
+  color: #333;
+}
+
+.user-role-text {
+  margin: 4px 0 0;
+  color: #6d28d9;
+  font-weight: 500;
+}
+
+.arrow-right {
+  margin-left: auto;
+  font-size: 24px;
+  color: #999;
+}
