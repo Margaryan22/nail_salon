@@ -6,14 +6,14 @@ import type { User } from '../types/userTypes';
 export const useAuth = () => {
   const dispatch = useAppDispatch();
 
-  const { user, isAuthenticated, isLoading, serverMessage, token } =
+  const { user, isAuthenticated, isLoading, serverMessage, accessToken } =
     useAppSelector((state) => state.auth);
 
   const handleLogout = () => dispatch(logout());
 
   // Проверка и восстановление сессии при монтировании (очень удобно в _app.tsx или layout)
   const checkAuth = () => {
-    if (token && !user) {
+    if (accessToken && !user) {
       dispatch(fetchMe());
     }
   };
@@ -23,7 +23,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     serverMessage,
-    token,
+    accessToken,
     logout: handleLogout,
     checkAuth,
   };
