@@ -5,7 +5,7 @@ import './scss/app.scss';
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-import RegistrationPage from './pages/RegistrartionPage';
+import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage'; // ← правильное имя
 import ServiceCatalogPage from './pages/ServiceCatalogPage';

@@ -8,7 +8,7 @@ export const store = configureStore({
     // Добавьте здесь другие редьюсеры (например, services, booking)
   },
 });
-
+(window as any).store = store;
 // Определяем RootState и AppDispatch для строго типизированных хуков (TypeScript)
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

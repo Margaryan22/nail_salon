@@ -1,4 +1,4 @@
-// src/store/slices/authSlice.ts
+// src/redux/authSlice.ts
 
 import {
   createAsyncThunk,
@@ -13,7 +13,6 @@ interface ServerMessage {
   status: number | null;
 }
 
-// Ответ от /auth/login и /auth/register
 interface AuthLoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -42,12 +41,11 @@ const initialState: AuthState = {
 
 // === THUNKS ===
 
-// Логин
 export const login = createAsyncThunk<
-  { authData: AuthLoginResponse; user: User },
+  AuthLoginResponse,
   { email: string; password: string },
   { rejectValue: ServerMessage }
->('auth/login', async (credentials, { rejectWithValue, dispatch }) => {
+>('auth/login', async (credentials, { rejectWithValue }) => {
   try {
     const response = await api.post<AuthLoginResponse>(
       '/auth/login',
@@ -55,56 +53,54 @@ export const login = createAsyncThunk<
     );
     const authData = response.data;
 
-    // Сразу сохраняем токены
     localStorage.setItem('accessToken', authData.accessToken);
     localStorage.setItem('refreshToken', authData.refreshToken);
+    api.defaults.headers.common[
+      'Authorization'
+    ] = `Bearer ${authData.accessToken}`;
 
-    // Получаем полные данные пользователя
-    const userResponse = await api.get<User>('/users/me');
-    const user = userResponse.data;
-
-    return { authData, user };
+    return authData;
   } catch (error: any) {
     return rejectWithValue({
       text: error.response?.data?.message || 'Неверный email или пароль',
-      status: error.response?.status || 401,
+      status: error.response?.status || 403,
     });
   }
 });
 
-// Регистрация (аналогично)
+// ДОБАВЬ ЭТОТ THUNK — РЕГИСТРАЦИЯ
 export const register = createAsyncThunk<
-  { authData: AuthLoginResponse; user: User },
+  AuthLoginResponse,
   {
     email: string;
     password: string;
     firstName: string;
-    lastName: string;
+    lastName: string | null;
     phone: string;
-    role: string;
+    role: 'CLIENT' | 'MASTER' | 'ADMIN';
+    permissionsLevel?: number;
   },
   { rejectValue: ServerMessage }
->('auth/register', async (data, { rejectWithValue, dispatch }) => {
+>('auth/register', async (data, { rejectWithValue }) => {
   try {
     const response = await api.post<AuthLoginResponse>('/auth/register', data);
     const authData = response.data;
 
     localStorage.setItem('accessToken', authData.accessToken);
     localStorage.setItem('refreshToken', authData.refreshToken);
+    api.defaults.headers.common[
+      'Authorization'
+    ] = `Bearer ${authData.accessToken}`;
 
-    const userResponse = await api.get<User>('/users/me');
-    const user = userResponse.data;
-
-    return { authData, user };
+    return authData;
   } catch (error: any) {
     return rejectWithValue({
       text: error.response?.data?.message || 'Ошибка регистрации',
-      status: error.response?.status || 500,
+      status: error.response?.status || 400,
     });
   }
 });
 
-// Получение текущего пользователя
 export const fetchMe = createAsyncThunk<
   User,
   void,
@@ -115,22 +111,24 @@ export const fetchMe = createAsyncThunk<
     return response.data;
   } catch (error: any) {
     return rejectWithValue({
-      text: 'Сессия истекла',
+      text: 'Не удалось загрузить профиль',
       status: error.response?.status || 401,
     });
   }
 });
 
-// Логаут
-export const logout = createAsyncThunk<void, void>('auth/logout', async () => {
+export const logout = createAsyncThunk('auth/logout', async () => {
   try {
     await api.post('/auth/logout');
   } catch (err) {
-    console.warn('Сервер не ответил на logout');
+    console.warn('Logout endpoint не ответил');
+  } finally {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    delete api.defaults.headers.common['Authorization'];
   }
 });
 
-// === SLICE ===
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -141,65 +139,58 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Успешный логин и регистрация
+      // Login
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.user = action.payload.user; // ← уже полный User!
-        state.accessToken = action.payload.authData.accessToken;
-        state.refreshToken = action.payload.authData.refreshToken;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
         state.serverMessage = { text: 'Успешный вход!', status: 200 };
       })
+      .addCase(login.rejected, (state, action) => {
+        state.isLoading = false;
+        state.serverMessage = action.payload || {
+          text: 'Ошибка входа',
+          status: 500,
+        };
+      })
+
+      // Register — точно такой же, как login!
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.accessToken = action.payload.authData.accessToken;
-        state.refreshToken = action.payload.authData.refreshToken;
-        state.serverMessage = { text: 'Регистрация успешна!', status: 200 };
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.serverMessage = { text: 'Регистрация успешна!', status: 201 };
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.isLoading = false;
+        state.serverMessage = action.payload || {
+          text: 'Ошибка регистрации',
+          status: 500,
+        };
       })
 
-      // Получение профиля
+      // Общее состояние загрузки
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(register.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      // fetchMe
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
-        state.isAuthenticated = true;
-        state.isLoading = false;
       })
 
-      // Логаут
+      // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
-        state.isLoading = false;
-        state.serverMessage = { text: 'Вы вышли из аккаунта', status: 200 };
-
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-      })
-
-      // Загрузка
-      .addCase(login.pending, (state) => {
-        state.isLoading = true;
-        state.serverMessage = { text: 'Вход...', status: null };
-      })
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
-        state.serverMessage = { text: 'Регистрация...', status: null };
-      })
-
-      // Ошибки
-      .addMatcher(
-        (action) => action.type.endsWith('/rejected'),
-        (state, action: PayloadAction<ServerMessage | undefined>) => {
-          state.isLoading = false;
-          state.serverMessage = action.payload || {
-            text: 'Ошибка',
-            status: 500,
-          };
-        }
-      );
+      });
   },
 });
 

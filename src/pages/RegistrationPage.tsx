@@ -20,27 +20,6 @@ const RegistrationPage: React.FC = () => {
     'client'
   );
 
-  // Редирект, если уже залогинен
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const role = user.role;
-      setTimeout(() => {
-        switch (role) {
-          case 'ADMIN':
-            navigate('/admin/dashboard', { replace: true });
-            break;
-          case 'MASTER':
-            navigate('/master/dashboard', { replace: true });
-            break;
-          case 'CLIENT':
-          default:
-            navigate('/profile', { replace: true });
-            break;
-        }
-      }, 800);
-    }
-  }, [isAuthenticated, user, navigate]);
-
   return (
     <div className='registration-container'>
       {' '}

@@ -1,60 +1,43 @@
-// src/components/Login/Login.tsx
+// src/pages/LoginPage.tsx или src/components/Login/Login.tsx
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { login, clearServerMessage } from '../redux/authSlice';
+import { login, clearServerMessage, fetchMe } from '../redux/authSlice';
 
-const Login: React.FC = () => {
+const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, serverMessage, isAuthenticated, user, accessToken } =
-    useAppSelector((state) => state.auth);
+  const { isLoading, serverMessage, isAuthenticated, user } = useAppSelector(
+    (state) => state.auth
+  );
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Очистка сообщений при заходе
   useEffect(() => {
     dispatch(clearServerMessage());
   }, [dispatch]);
 
-  // Редирект после успешного логина
+  // Редирект после успешного логина — сразу на /profile
   useEffect(() => {
     if (isAuthenticated && user) {
-      const role = user.role;
-
-      switch (role) {
-        case 'ADMIN':
-          navigate('/admin/dashboard', { replace: true });
-          break;
-        case 'MASTER':
-          navigate('/master/dashboard', { replace: true });
-          break;
-        case 'CLIENT':
-        default:
-          navigate('/profile', { replace: true });
-          break;
-      }
+      navigate('/profile', { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password) return;
 
-    if (!email.trim() || !password) {
-      return;
-    }
-
-    // Используем thunk из authSlice — он сам сохранит accessToken!
     const result = await dispatch(login({ email: email.trim(), password }));
 
-    // Если логин не удался — ничего не делаем
-    if (login.rejected.match(result)) {
-      console.log('Ошибка входа:', result.payload);
+    if (login.fulfilled.match(result)) {
+      // После успешного логина — сразу получаем данные пользователя
+      dispatch(fetchMe());
+      // Редирект произойдёт автоматически в useEffect выше
     }
   };
 
@@ -67,56 +50,44 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} noValidate>
           <div className='form-group'>
-            <label htmlFor='email' className='form-label'>
-              Email
-            </label>
+            <label htmlFor='email'>Email</label>
             <input
               type='email'
-              id='email'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
               placeholder='you@example.com'
-              className='form-input'
               disabled={isLoading}
+              required
             />
           </div>
 
           <div className='form-group password-group'>
-            <label htmlFor='password' className='form-label'>
-              Пароль
-            </label>
+            <label htmlFor='password'>Пароль</label>
             <div className='password-input-container'>
               <input
                 type={showPassword ? 'text' : 'password'}
-                id='password'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
                 placeholder='••••••••'
-                className='form-input'
                 disabled={isLoading}
+                required
               />
               <button
                 type='button'
                 onClick={togglePassword}
                 className='password-toggle'
-                disabled={isLoading}
               >
                 {showPassword ? 'Скрыть' : 'Показать'}
               </button>
             </div>
           </div>
 
-          {/* Сообщения */}
           {serverMessage.text && (
             <div
               className={`response-message ${
-                serverMessage.status &&
-                serverMessage.status >= 200 &&
-                serverMessage.status < 300
-                  ? 'success'
-                  : 'error'
+                serverMessage.status && serverMessage.status >= 400
+                  ? 'error'
+                  : 'success'
               }`}
             >
               {serverMessage.text}
@@ -128,10 +99,7 @@ const Login: React.FC = () => {
           </button>
 
           <p className='register-prompt'>
-            Нет аккаунта?{' '}
-            <Link to='/registration' className='login-link'>
-              Зарегистрироваться
-            </Link>
+            Нет аккаунта? <Link to='/registration'>Зарегистрироваться</Link>
           </p>
         </form>
       </div>
@@ -139,4 +107,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default LoginPage;
