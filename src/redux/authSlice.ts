@@ -49,7 +49,7 @@ export const login = createAsyncThunk<
     return response.data;
   } catch (error: any) {
     return rejectWithValue({
-      text: error.response?.data?.message || 'Неверный email или пароль',
+      text: error.response?.data?.message || 'Неверныййййй email или пароль',
       status: error.response?.status || 403,
     });
   }
