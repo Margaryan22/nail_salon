@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { login, clearServerMessage, fetchMe } from '../redux/authSlice';
+import { login, clearServerMessage } from '../redux/authSlice';
 
 const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -17,12 +17,12 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Очистка сообщения при входе на страницу
   useEffect(() => {
     dispatch(clearServerMessage());
   }, [dispatch]);
 
-  // Редирект сразу после того, как isAuthenticated стал true
-  // НЕ ждём user — он может грузиться долго
+  // Редирект сразу после успешного логина
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/profile', { replace: true });
@@ -31,16 +31,13 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!email.trim() || !password) return;
 
-    const result = await dispatch(login({ email: email.trim(), password }));
-
-    if (login.fulfilled.match(result)) {
-      // Успешно залогинились → запускаем fetchMe в фоне
-      dispatch(fetchMe());
-      // Редирект произойдёт автоматически в useEffect выше
-    }
-    // Если rejected — ошибка уже в serverMessage
+    // Только один запрос — /auth/login
+    await dispatch(login({ email: email.trim(), password }));
+    // Всё! Никаких fetchMe, никаких доп. запросов
+    // Редирект произойдёт автоматически через useEffect выше
   };
 
   const togglePassword = () => setShowPassword((prev) => !prev);
@@ -84,6 +81,7 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Сообщение с бэкенда */}
           {serverMessage.text && (
             <div
               className={`response-message ${
