@@ -1,10 +1,6 @@
 // src/redux/authSlice.ts
 
-import {
-  createAsyncThunk,
-  createSlice,
-  type PayloadAction,
-} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { api } from '../api';
 import type { User } from '../types/userTypes';
 
@@ -40,7 +36,6 @@ const initialState: AuthState = {
 };
 
 // === THUNKS ===
-
 export const login = createAsyncThunk<
   AuthLoginResponse,
   { email: string; password: string },
@@ -51,15 +46,7 @@ export const login = createAsyncThunk<
       '/auth/login',
       credentials
     );
-    const authData = response.data;
-
-    localStorage.setItem('accessToken', authData.accessToken);
-    localStorage.setItem('refreshToken', authData.refreshToken);
-    api.defaults.headers.common[
-      'Authorization'
-    ] = `Bearer ${authData.accessToken}`;
-
-    return authData;
+    return response.data;
   } catch (error: any) {
     return rejectWithValue({
       text: error.response?.data?.message || 'Неверный email или пароль',
@@ -68,7 +55,6 @@ export const login = createAsyncThunk<
   }
 });
 
-// ДОБАВЬ ЭТОТ THUNK — РЕГИСТРАЦИЯ
 export const register = createAsyncThunk<
   AuthLoginResponse,
   {
@@ -84,15 +70,7 @@ export const register = createAsyncThunk<
 >('auth/register', async (data, { rejectWithValue }) => {
   try {
     const response = await api.post<AuthLoginResponse>('/auth/register', data);
-    const authData = response.data;
-
-    localStorage.setItem('accessToken', authData.accessToken);
-    localStorage.setItem('refreshToken', authData.refreshToken);
-    api.defaults.headers.common[
-      'Authorization'
-    ] = `Bearer ${authData.accessToken}`;
-
-    return authData;
+    return response.data;
   } catch (error: any) {
     return rejectWithValue({
       text: error.response?.data?.message || 'Ошибка регистрации',
@@ -122,13 +100,10 @@ export const logout = createAsyncThunk('auth/logout', async () => {
     await api.post('/auth/logout');
   } catch (err) {
     console.warn('Logout endpoint не ответил');
-  } finally {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    delete api.defaults.headers.common['Authorization'];
   }
 });
 
+// === SLICE ===
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -138,45 +113,49 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Login
     builder
-      // Login
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+        state.serverMessage = { text: 'Входим...', status: null };
+      })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
+        localStorage.setItem('accessToken', action.payload.accessToken);
+        localStorage.setItem('refreshToken', action.payload.refreshToken);
         state.serverMessage = { text: 'Успешный вход!', status: 200 };
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.serverMessage = action.payload || {
+        state.serverMessage = action.payload ?? {
           text: 'Ошибка входа',
           status: 500,
         };
       })
 
-      // Register — точно такой же, как login!
+      // Register
+      .addCase(register.pending, (state) => {
+        state.isLoading = true;
+        state.serverMessage = { text: 'Регистрируем...', status: null };
+      })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
+        localStorage.setItem('accessToken', action.payload.accessToken);
+        localStorage.setItem('refreshToken', action.payload.refreshToken);
         state.serverMessage = { text: 'Регистрация успешна!', status: 201 };
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.serverMessage = action.payload || {
+        state.serverMessage = action.payload ?? {
           text: 'Ошибка регистрации',
           status: 500,
         };
-      })
-
-      // Общее состояние загрузки
-      .addCase(login.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
       })
 
       // fetchMe
@@ -184,12 +163,14 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
 
-      // Logout
+      // logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       });
   },
 });

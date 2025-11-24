@@ -1,4 +1,5 @@
 // src/api.ts
+
 import axios from 'axios';
 import { logout } from './redux/authSlice';
 
@@ -8,7 +9,7 @@ let store: any;
 export const injectStore = (_store: any) => {
   store = _store;
 };
-// === Все эндпоинты ===
+
 export const ENDPOINTS = {
   AUTH: {
     REGISTER: `${API_BASE_URL}/auth/register`,
@@ -40,7 +41,7 @@ export const ENDPOINTS = {
   SCHEDULE: `${API_BASE_URL}/master_schedule`,
 } as const;
 
-// === Основной api — для всех защищённых запросов ===
+// === Основной API (защищённые запросы) ===
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
@@ -49,41 +50,54 @@ export const api = axios.create({
   },
 });
 
-// Подставляем accessToken, если он есть
-api.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem('accessToken');
+// === Публичный API (без токена) ===
+export const publicApi = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  if (
-    accessToken &&
-    accessToken !== 'null' &&
-    accessToken !== 'undefined' &&
-    accessToken.trim() !== ''
-  ) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
+// ВАЖНО: Подставляем токен ТОЛЬКО если URL НЕ начинается с /auth/
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+
+  // НЕ ставим токен на запросы к /auth/**
+  if (config.url?.includes('/auth/')) {
+    return config;
   }
+
+  if (token && token !== 'null' && token !== 'undefined' && token.trim()) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
-// Рефреш токена
+
+// Рефреш токена + 401 обработка
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Если 401 и это НЕ запрос на рефреш или логин
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/refresh-token') &&
+      !originalRequest.url?.includes('/auth/login')
+    ) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) throw new Error('No refresh token');
 
-        const { data } = await axios.post(
-          `${API_BASE_URL}/auth/refresh-token`,
-          {
-            refreshToken,
-          }
-        );
+        const { data } = await publicApi.post('/auth/refresh-token', {
+          refreshToken,
+        });
 
-        // ← ВОТ ЭТО ГЛАВНОЕ ИСПРАВЛЕНИЕ!
         const { accessToken, refreshToken: newRefreshToken } = data;
 
         localStorage.setItem('accessToken', accessToken);
@@ -102,17 +116,10 @@ api.interceptors.response.use(
         } else {
           window.location.href = '/login';
         }
+        return Promise.reject(refreshError);
       }
     }
 
     return Promise.reject(error);
   }
 );
-// Публичный API — без токена
-export const publicApi = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
