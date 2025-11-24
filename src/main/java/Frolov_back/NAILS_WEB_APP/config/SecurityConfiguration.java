@@ -40,9 +40,11 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())  // ✅ ВЕРНУТЬ CORS
+                .cors(Customizer.withDefaults())  // Использует бин corsConfigurationSource
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").permitAll()  // ✅ Разрешаем ВСЕ запросы
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
