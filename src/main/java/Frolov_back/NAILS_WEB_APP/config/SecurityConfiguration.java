@@ -13,6 +13,7 @@ import Frolov_back.NAILS_WEB_APP.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -40,10 +41,18 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())  // Использует бин corsConfigurationSource
+                .cors(Customizer.withDefaults()) // использует WebConfig.corsConfigurationSource()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // ВСЁ, что начинается с /api/v1/auth/ — без токена
+                        .requestMatchers("/api/v1/auth/").permitAll()
+
+                        // Swagger
+                        .requestMatchers("/swagger-ui/", "/v3/api-docs/", "/swagger-ui.html").permitAll()
+
+                        // Обязательно разрешаем OPTIONS для всех путей (preflight)
+                        .requestMatchers(HttpMethod.OPTIONS, "/").permitAll()
+
+                        // Всё остальное — только с валидным JWT
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
