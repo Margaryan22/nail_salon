@@ -1,4 +1,4 @@
-// src/pages/LoginPage.tsx или src/components/Login/Login.tsx
+// src/pages/LoginPage.tsx
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -9,7 +9,7 @@ const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, serverMessage, isAuthenticated, user } = useAppSelector(
+  const { isLoading, serverMessage, isAuthenticated } = useAppSelector(
     (state) => state.auth
   );
 
@@ -21,12 +21,13 @@ const LoginPage: React.FC = () => {
     dispatch(clearServerMessage());
   }, [dispatch]);
 
-  // Редирект после успешного логина — сразу на /profile
+  // Редирект сразу после того, как isAuthenticated стал true
+  // НЕ ждём user — он может грузиться долго
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated) {
       navigate('/profile', { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +36,11 @@ const LoginPage: React.FC = () => {
     const result = await dispatch(login({ email: email.trim(), password }));
 
     if (login.fulfilled.match(result)) {
-      // После успешного логина — сразу получаем данные пользователя
+      // Успешно залогинились → запускаем fetchMe в фоне
       dispatch(fetchMe());
       // Редирект произойдёт автоматически в useEffect выше
     }
+    // Если rejected — ошибка уже в serverMessage
   };
 
   const togglePassword = () => setShowPassword((prev) => !prev);
