@@ -27,6 +27,49 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // ТЕСТОВЫЙ запрос — проверяем, доходит ли до бэкенда напрямую
+  useEffect(() => {
+    const testDirectConnection = async () => {
+      try {
+        console.log('Проверяем прямое соединение с бэкендом...');
+        const response = await fetch(
+          'http://87.242.87.228:3000/api/v1/auth/login',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: 'client@example.com',
+              password: 'password123',
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('УСПЕХ: Прямое соединение с бэкендом работает!', data);
+        } else {
+          console.log(
+            'ОШИБКА от бэкенда:',
+            response.status,
+            response.statusText
+          );
+          const text = await response.text();
+          console.log('Тело ответа:', text);
+        }
+      } catch (err: any) {
+        console.error(
+          'НЕТ СОЕДИНЕНИЯ: Запрос вообще не ушёл (CORS, сеть, бэкенд выключен)',
+          err.message
+        );
+      }
+    };
+
+    // Запускаем один раз при загрузке страницы
+    testDirectConnection();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) return;
@@ -39,7 +82,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className='login-page-container'>
       <div className='login-card'>
-        <h2 className='form-title'>Вход в аккаунт 🔑</h2>
+        <h2 className='form-title'>Вход в аккаунт</h2>
 
         <form onSubmit={handleSubmit} noValidate>
           {/* Email */}
@@ -50,7 +93,7 @@ const LoginPage: React.FC = () => {
             <input
               id='email'
               type='email'
-              className='form-input' // ← ВАЖНО!
+              className='form-input'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder='you@example.com'
@@ -69,7 +112,7 @@ const LoginPage: React.FC = () => {
               <input
                 id='password'
                 type={showPassword ? 'text' : 'password'}
-                className='form-input' // ← ВАЖНО!
+                className='form-input'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder='••••••••'
@@ -83,7 +126,7 @@ const LoginPage: React.FC = () => {
                 className='password-toggle'
                 aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
               >
-                {showPassword ? '🙈' : '🐵'}
+                {showPassword ? 'Скрыть' : 'Показать'}
               </button>
             </div>
           </div>
@@ -106,7 +149,6 @@ const LoginPage: React.FC = () => {
             {isLoading ? 'Входим...' : 'Войти'}
           </button>
 
-          {/* Ссылка на регистрацию */}
           <p className='login-link-container'>
             Нет аккаунта?{' '}
             <Link to='/registration' className='login-link'>
