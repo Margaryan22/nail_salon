@@ -1,5 +1,5 @@
-import { useAppSelector } from '../hooks/useAppSelector';
-import { useAppDispatch } from '../hooks/useAppDispatch';
+import { useAppDispatch } from './useAppDispatch';
+import { useAppSelector } from './useAppSelector';
 import { logout, fetchMe } from '../redux/authSlice';
 import type { User } from '../types/userTypes';
 
@@ -11,7 +11,6 @@ export const useAuth = () => {
 
   const handleLogout = () => dispatch(logout());
 
-  // Проверка и восстановление сессии при монтировании (очень удобно в _app.tsx или layout)
   const checkAuth = () => {
     if (accessToken && !user) {
       dispatch(fetchMe());

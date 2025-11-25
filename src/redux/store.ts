@@ -5,10 +5,9 @@ import authReducer from './authSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    // Добавьте здесь другие редьюсеры (например, services, booking)
   },
 });
-(window as any).store = store;
-// Определяем RootState и AppDispatch для строго типизированных хуков (TypeScript)
+
+// Эти две строки — единственное, что нужно для типизации useAppSelector и useAppDispatch
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
