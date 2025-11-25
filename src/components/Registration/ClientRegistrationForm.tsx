@@ -168,6 +168,9 @@ const ClientRegistrationForm: React.FC = () => {
                 }`}
                 placeholder='Анна'
                 disabled={isLoading}
+                autoCapitalize='none' // ОТКЛЮЧАЕТ АВТО-ЗАГЛАВНУЮ БУКВУ
+                autoComplete='given-name' // правильно подсказывает браузеру, что это имя
+                spellCheck={false} // дополнительно: отключает проверку орфографии
               />
             )}
           />
@@ -198,6 +201,9 @@ const ClientRegistrationForm: React.FC = () => {
                 }`}
                 placeholder='Иванова'
                 disabled={isLoading}
+                autoCapitalize='none' // ГЛАВНОЕ — ЭТОТ АТРИБУТ
+                autoComplete='family-name' // правильный тип для фамилии
+                spellCheck={false}
               />
             )}
           />
@@ -205,7 +211,6 @@ const ClientRegistrationForm: React.FC = () => {
             <p className='error-message'>{errors.lastName?.message}</p>
           )}
         </div>
-
         {/* Телефон */}
         <div className='form-group'>
           <label className='form-label'>Телефон</label>
@@ -293,7 +298,7 @@ const ClientRegistrationForm: React.FC = () => {
                   onClick={togglePassword}
                   disabled={isLoading}
                 >
-                  {showPassword ? 'Скрыть' : 'Показать'}
+                  {showPassword ? '🙈' : '🐵'}
                 </button>
               </div>
             )}

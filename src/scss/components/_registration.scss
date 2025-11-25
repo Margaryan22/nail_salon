@@ -78,9 +78,6 @@
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
-  // Визуально приводим текст к заглавной букве в начале каждого слова
-  text-transform: capitalize;
-
   // Стили, специфичные для формы
   padding: $spacing-unit * 1.5 $spacing-unit * 2;
   border: 1px solid $color-medium-gray;

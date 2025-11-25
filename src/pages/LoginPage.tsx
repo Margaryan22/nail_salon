@@ -17,12 +17,10 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Очистка сообщения при входе на страницу
   useEffect(() => {
     dispatch(clearServerMessage());
   }, [dispatch]);
 
-  // Редирект сразу после успешного логина
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/profile', { replace: true });
@@ -31,13 +29,9 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!email.trim() || !password) return;
 
-    // Только один запрос — /auth/login
     await dispatch(login({ email: email.trim(), password }));
-    // Всё! Никаких fetchMe, никаких доп. запросов
-    // Редирект произойдёт автоматически через useEffect выше
   };
 
   const togglePassword = () => setShowPassword((prev) => !prev);
@@ -45,43 +39,56 @@ const LoginPage: React.FC = () => {
   return (
     <div className='login-page-container'>
       <div className='login-card'>
-        <h2 className='form-title'>Вход в аккаунт</h2>
+        <h2 className='form-title'>Вход в аккаунт 🔑</h2>
 
         <form onSubmit={handleSubmit} noValidate>
+          {/* Email */}
           <div className='form-group'>
-            <label htmlFor='email'>Email</label>
+            <label className='form-label' htmlFor='email'>
+              Email
+            </label>
             <input
+              id='email'
               type='email'
+              className='form-input' // ← ВАЖНО!
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder='you@example.com'
               disabled={isLoading}
+              autoComplete='username'
               required
             />
           </div>
 
+          {/* Пароль */}
           <div className='form-group password-group'>
-            <label htmlFor='password'>Пароль</label>
+            <label className='form-label' htmlFor='password'>
+              Пароль
+            </label>
             <div className='password-input-container'>
               <input
+                id='password'
                 type={showPassword ? 'text' : 'password'}
+                className='form-input' // ← ВАЖНО!
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder='••••••••'
                 disabled={isLoading}
+                autoComplete='current-password'
                 required
               />
               <button
                 type='button'
                 onClick={togglePassword}
                 className='password-toggle'
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
               >
-                {showPassword ? 'Скрыть' : 'Показать'}
+                {showPassword ? '🙈' : '🐵'}
               </button>
             </div>
           </div>
 
-          {/* Сообщение с бэкенда */}
+          {/* Сообщение от сервера */}
           {serverMessage.text && (
             <div
               className={`response-message ${
@@ -94,12 +101,17 @@ const LoginPage: React.FC = () => {
             </div>
           )}
 
+          {/* Кнопка входа */}
           <button type='submit' disabled={isLoading} className='form-button'>
             {isLoading ? 'Входим...' : 'Войти'}
           </button>
 
-          <p className='register-prompt'>
-            Нет аккаунта? <Link to='/registration'>Зарегистрироваться</Link>
+          {/* Ссылка на регистрацию */}
+          <p className='login-link-container'>
+            Нет аккаунта?{' '}
+            <Link to='/registration' className='login-link'>
+              Зарегистрироваться
+            </Link>
           </p>
         </form>
       </div>

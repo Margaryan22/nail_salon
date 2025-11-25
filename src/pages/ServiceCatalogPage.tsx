@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { api } from '../api';
+import { api, publicApi } from '../api';
 import type { Service } from '../types/userTypes';
 import ServiceItem from '../components/ServiceItem';
 
@@ -28,7 +28,7 @@ const ServiceCatalogPage: React.FC = () => {
     const fetchServices = async () => {
       try {
         setIsLoading(true);
-        const { data } = await api.get<Service[]>('/services');
+        const { data } = await publicApi.get<Service[]>('/services');
         setServices(data.filter((s) => s.active));
         setError(null);
       } catch (err) {

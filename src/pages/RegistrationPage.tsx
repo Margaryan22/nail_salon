@@ -27,7 +27,7 @@ const RegistrationPage: React.FC = () => {
       <div className='registration-form'>
         {' '}
         {/* ← белая карточка из твоего SCSS */}
-        <h2 className='form-title'>Создать аккаунт</h2>
+        <h2 className='form-title'>Создать аккаунт🏃‍♂️</h2>
         {/* Вкладки — используем твои классы из SCSS */}
         <div className='role-tabs'>
           <button

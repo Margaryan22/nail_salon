@@ -28,13 +28,12 @@ export interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  accessToken: localStorage.getItem('accessToken') || null,
-  refreshToken: localStorage.getItem('refreshToken') || null,
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  accessToken: null, // ← БОЛЬШЕ НЕ ЧИТАЕМ из localStorage!
+  refreshToken: null, // ← Тоже null
+  isAuthenticated: false, // ← Всегда false при старте!
   isLoading: false,
   serverMessage: { text: '', status: null },
 };
-
 // === THUNKS ===
 export const login = createAsyncThunk<
   AuthLoginResponse,
@@ -83,7 +82,7 @@ export const fetchMe = createAsyncThunk<
   User,
   void,
   { rejectValue: ServerMessage }
->('auth/fetchMe', async (_, { rejectWithValue }) => {
+>('auth/me', async (_, { rejectWithValue }) => {
   try {
     const response = await api.get<User>('/users/me');
     return response.data;
@@ -161,6 +160,15 @@ const authSlice = createSlice({
       // fetchMe
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
+        state.isAuthenticated = true; // только после успешного fetchMe
+      })
+      .addCase(fetchMe.rejected, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
 
       // logout
