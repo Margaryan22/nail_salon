@@ -1,6 +1,6 @@
 // src/pages/ProfilePage.tsx (переименуй компонент!)
 import React, { useEffect, useState } from 'react';
-import { publicApi, ENDPOINTS } from '../api';
+import { publicApi, ENDPOINTS, api } from '../api';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchMe, logout } from '../redux/authSlice';
@@ -40,8 +40,8 @@ const ProfilePage: React.FC = () => {
       try {
         setIsLoading(true);
         const [mastersRes, servicesRes] = await Promise.all([
-          publicApi.get(ENDPOINTS.USERS.MASTERS),
-          publicApi.get(ENDPOINTS.SERVICES.ALL),
+          api.get(ENDPOINTS.USERS.MASTERS),
+          api.get(ENDPOINTS.SERVICES.ALL),
         ]);
         setMasters(mastersRes.data);
         setServices(servicesRes.data);
