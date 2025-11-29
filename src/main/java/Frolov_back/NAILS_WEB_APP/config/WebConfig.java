@@ -19,6 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "https://nails-salon.whysargis.ru*",
+                "https://nails-salon-back.whysargis.ru*",
                 "https://*.whysargis.ru",
                 "http://localhost:*",
                 "https://localhost:*"
