@@ -65,10 +65,12 @@ const ProfilePage: React.FC = () => {
         className='avatar-profile-button'
         onClick={handleAvatarClick}
         title='Личный кабинет'
-      ></button>
+      >
+        A
+      </button>
 
       {/* Пропсы не меняем */}
-      <MasterList masters={masters} /> 
+      <MasterList masters={masters} />
       <ServiceList services={services} />
     </div>
   );
