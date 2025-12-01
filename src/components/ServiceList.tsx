@@ -5,7 +5,7 @@ import type { Service } from '../types/userTypes';
 
 import ServiceItem from './ServiceItem';
 
-interface ServiceListProps {
+export interface ServiceListProps {
   services: Service[]; // ← обязательно передаём!
   initialDisplayCount?: number; // ← сколько показать
 }

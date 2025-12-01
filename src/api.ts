@@ -31,6 +31,11 @@ export const ENDPOINTS = {
     SEARCH: `${API_BASE_URL}/services/search`,
     CATEGORIES: `${API_BASE_URL}/services/categories`,
   },
+  MASTER_SERVICES: {
+    SERVICE_BY_MASTER: `${API_BASE_URL}/master-services/master/`,
+    SEARCH: `${API_BASE_URL}/services/search`,
+    CATEGORIES: `${API_BASE_URL}/services/categories`,
+  },
   APPOINTMENTS: {
     BASE: `${API_BASE_URL}/appointments`,
     CLIENT: `${API_BASE_URL}/client`,

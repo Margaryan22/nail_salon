@@ -1,4 +1,4 @@
-// src/pages/ProfilePage.tsx (переименуй компонент!)
+// src/pages/ProfilePage.tsx
 import React, { useEffect, useState } from 'react';
 import { publicApi, ENDPOINTS, api } from '../api';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { fetchMe, logout } from '../redux/authSlice';
 import MasterList from '../components/MasterList';
 import ServiceList from '../components/ServiceList';
 
+// Имя компонента оставлено как ProfilePage
 const ProfilePage: React.FC = () => {
   const [masters, setMasters] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -59,13 +60,15 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className='master-list-page-container'>
+      {/* Кнопка с классом для круглого и фиксированного позиционирования */}
       <button
-        className='avatar-button'
+        className='avatar-profile-button'
         onClick={handleAvatarClick}
         title='Личный кабинет'
       ></button>
 
-      <MasterList masters={masters} />
+      {/* Пропсы не меняем */}
+      <MasterList masters={masters} /> 
       <ServiceList services={services} />
     </div>
   );

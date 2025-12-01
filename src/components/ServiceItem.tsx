@@ -8,17 +8,27 @@ interface ServiceItemProps {
 }
 
 const ServiceItem: React.FC<ServiceItemProps> = ({ service }) => {
-  const { name, categoryName, basePrice, baseDuration, imageUrl } = service;
+  // Деструктурируем с дефолтными значениями — это спасает от null/undefined
+  const {
+    name = 'Без названия',
+    categoryName = 'Без категории',
+    basePrice = 0,
+    baseDuration = 0,
+    imageUrl,
+  } = service;
+
+  // На всякий случай принудительно приводим к числу (если вдруг строка "2500")
+  const price = Number(basePrice) || 0;
+  const duration = Number(baseDuration) || 0;
 
   return (
     <div className='service-item'>
-      {/* Левая часть — фото + название */}
       <div className='service-info-left'>
         <div className='service-image-container'>
           <div
             className='service-image'
             style={{
-              backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
+              backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
             }}
           />
         </div>
@@ -29,13 +39,10 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ service }) => {
         </div>
       </div>
 
-      {/* Правая часть — цена, время, кнопка */}
       <div className='service-info-right'>
         <div className='service-price-duration'>
-          <p className='service-price'>
-            от {basePrice.toLocaleString('ru-RU')} ₽
-          </p>
-          <p className='service-duration'>{baseDuration} мин.</p>
+          <p className='service-price'>от {price.toLocaleString('ru-RU')} ₽</p>
+          <p className='service-duration'>{duration} мин.</p>
         </div>
 
         <button className='book-service-button'>Записаться</button>

@@ -48,16 +48,22 @@ export interface AuthState {
   lastServerError: RawServerError | null;
 }
 
+// >>> ИЗМЕНЕНИЯ ЗДЕСЬ: Загружаем токены при инициализации
+const initialAccessToken = localStorage.getItem('accessToken');
+const initialRefreshToken = localStorage.getItem('refreshToken');
+
 const initialState: AuthState = {
   user: null,
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
+  accessToken: initialAccessToken, // Токен из localStorage
+  refreshToken: initialRefreshToken, // Refresh-токен из localStorage
+  // Аутентификация считается пройденной, если токен найден
+  isAuthenticated: !!initialAccessToken,
   isLoading: false,
   serverMessage: { text: '', status: null },
   lastServerResponse: null,
   lastServerError: null,
 };
+// <<< КОНЕЦ ИЗМЕНЕНИЙ
 
 // === THUNKS ===
 export const login = createAsyncThunk<
@@ -177,6 +183,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
+        // Сохраняем токены
         localStorage.setItem('accessToken', action.payload.accessToken);
         localStorage.setItem('refreshToken', action.payload.refreshToken);
 
@@ -201,6 +208,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
+        // Сохраняем токены
         localStorage.setItem('accessToken', action.payload.accessToken);
         localStorage.setItem('refreshToken', action.payload.refreshToken);
 
@@ -222,6 +230,7 @@ const authSlice = createSlice({
         captureResponse(state, action, 'Профиль загружен', 200);
       })
       .addCase(fetchMe.rejected, (state, action) => {
+        // Если токен невалиден, чистим состояние и хранилище
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
@@ -237,6 +246,7 @@ const authSlice = createSlice({
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
+        // Чистим хранилище при явном выходе
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         state.serverMessage = { text: 'Выход выполнен', status: 200 };

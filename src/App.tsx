@@ -1,20 +1,35 @@
 // src/App.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react'; // Добавлен useEffect для логики восстановления сессии
 import './scss/app.scss';
 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAppSelector } from './hooks'; // ← обязательно должен быть
+import { useAppDispatch, useAppSelector } from './hooks'; // ← обязательно должен быть
+import { fetchMe } from './redux/authSlice'; // Импорт fetchMe для восстановления сессии
 
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import ServiceCatalogPage from './pages/ServiceCatalogPage';
 import UserAccountPage from './pages/UserAccountPage';
+import ServicesByMaster from './pages/ServicesByMaster'; // <<< ИМПОРТ НОВОГО КОМПОНЕНТА
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch(); // Добавлен dispatch
+  const { accessToken, isAuthenticated, isLoading } = useAppSelector(
+    (state) => state.auth
+  );
   const location = useLocation();
+
+  // >>> ЛОГИКА ВОССТАНОВЛЕНИЯ СЕССИИ ПРИ ЗАГРУЗКЕ <<<
+  useEffect(() => {
+    // Проверяем, есть ли токен в состоянии (загружен из localStorage) и пользователь не авторизован
+    if (accessToken && !isAuthenticated) {
+      // Пытаемся получить профиль, чтобы подтвердить токен
+      dispatch(fetchMe());
+    }
+  }, [accessToken, isAuthenticated, dispatch]);
+  // >>> КОНЕЦ ЛОГИКИ ВОССТАНОВЛЕНИЯ СЕССИИ <<<
 
   // Пока идёт любая загрузка — показываем минимальный лоадер (или ничего)
   if (isLoading) {
@@ -62,6 +77,19 @@ const App: React.FC = () => {
             )
           }
         />
+
+        {/* <<< НОВЫЙ ЗАЩИЩЕННЫЙ МАРШРУТ: Выбор услуг мастера */}
+        <Route
+          path='/services-by-master/:masterId' // ← теперь совпадает с navigate()
+          element={
+            isAuthenticated ? (
+              <ServicesByMaster />
+            ) : (
+              <Navigate to='/login' state={{ from: location }} replace />
+            )
+          }
+        />
+        {/* КОНЕЦ НОВОГО МАРШРУТА >>> */}
 
         <Route
           path='/account'

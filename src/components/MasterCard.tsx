@@ -1,6 +1,7 @@
-// src/components/MasterList/MasterCard.tsx (ИСПРАВЛЕНО)
+// src/components/MasterList/MasterCard.tsx
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // <<< ДОБАВЛЕН ИМПОРТ useNavigate
 import type { MasterCardType } from '../types/userTypes';
 
 interface MasterCardProps {
@@ -8,10 +9,24 @@ interface MasterCardProps {
 }
 
 const MasterCard: React.FC<MasterCardProps> = ({ master }) => {
+  const navigate = useNavigate(); // <<< Инициализация хука useNavigate
+  console.log('master object:', master); // ← ВОТ ЭТО СРОЧНО ДОБАВЬ!
+
   // АПИ ВЕРНУЛ ТОЛЬКО ЭТИ ПОЛЯ. masterProfile ОТСУТСТВУЕТ.
-  const { firstName, lastName } = master;
+  const { id, firstName, lastName } = master; // <<< Добавил master.id для навигации
 
   const imageUrl = '/default-master-avatar.jpg'; // fallback
+
+  // Обработчик для кнопки "Записаться"
+  const handleBookingClick = () => {
+    navigate(`/services-by-master/${master.userId}`, {
+      state: {
+        masterName: `${master.firstName} ${master.lastName}`,
+        // Можно передать и фото, если захочешь:
+        // masterAvatar: master.avatar || '/default-master-avatar.jpg',
+      },
+    });
+  };
 
   return (
     <div className='master-card'>
@@ -29,7 +44,11 @@ const MasterCard: React.FC<MasterCardProps> = ({ master }) => {
 
         <p className='master-specialization'>Специализация</p>
 
-        <button className='book-button' type='button'>
+        <button
+          className='book-button'
+          type='button'
+          onClick={handleBookingClick} // <<< ДОБАВЛЕН ОБРАБОТЧИК КЛИКА
+        >
           Записаться
         </button>
       </div>
