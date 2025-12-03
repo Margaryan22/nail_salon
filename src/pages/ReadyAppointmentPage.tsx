@@ -79,18 +79,8 @@ const ReadyAppointmentPage: React.FC = () => {
       notes: '',
     };
 
-    // 2. Выводим тело запроса в консоль
-    console.log(
-      '🔗 POST запрос на создание записи:',
-      ENDPOINTS.APPOINTMENTS.BASE
-    );
-    console.log('📄 Тело запроса:', requestBody);
-
     try {
       const response = await api.post(ENDPOINTS.APPOINTMENTS.BASE, requestBody);
-
-      // 3. Выводим ответ API в консоль
-      console.log('✅ Успешный ответ API:', response.data);
 
       setSuccess(true);
       sessionStorage.removeItem('pendingAppointment');

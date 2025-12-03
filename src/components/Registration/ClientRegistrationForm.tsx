@@ -33,8 +33,8 @@ interface ClientFormData {
 
 const ClientRegistrationForm: React.FC = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const { isLoading, serverMessage, isAuthenticated } = useAppSelector(
+  const navigate = useNavigate(); // 🔑 ИЗМЕНЕНО: Используем isRegisteredSuccess вместо isAuthenticated для блокировки/отображения
+  const { isLoading, serverMessage, isRegisteredSuccess } = useAppSelector(
     (state) => state.auth
   );
 
@@ -59,32 +59,27 @@ const ClientRegistrationForm: React.FC = () => {
     mode: 'onBlur',
   });
 
-  const phoneValue = watch('phone');
+  const phoneValue = watch('phone'); // Авто +7 при пустом поле
 
-  // Авто +7 при пустом поле
   useEffect(() => {
     if (!phoneValue || phoneValue === '') {
       setValue('phone', '+7', { shouldValidate: false });
     }
-  }, [phoneValue, setValue]);
+  }, [phoneValue, setValue]); // Очистка сообщения при уходе с формы
 
-  // Очистка сообщения при уходе с формы
   useEffect(() => {
     return () => {
       dispatch(clearServerMessage());
     };
-  }, [dispatch]);
+  }, [dispatch]); // Обработка серверных ошибок (email/phone уже заняты)
 
-  // Редирект после успешной регистрации
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/profile'); // или '/appointments', куда хочешь
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Обработка серверных ошибок (email/phone уже заняты)
-  useEffect(() => {
-    if (serverMessage.text) {
+    // Проверяем, что это сообщение об ошибке (не успех)
+    if (
+      serverMessage.text &&
+      serverMessage.status &&
+      serverMessage.status >= 400
+    ) {
       const msg = serverMessage.text.toLowerCase();
 
       if (msg.includes('email')) {
@@ -100,9 +95,12 @@ const ClientRegistrationForm: React.FC = () => {
         });
       }
     }
-  }, [serverMessage.text, setError]);
+  }, [serverMessage.text, serverMessage.status, setError]);
 
   const onSubmit = (data: ClientFormData) => {
+    // 💡 ИЗМЕНЕНИЕ: Очищаем предыдущие ошибки перед новым запросом
+    dispatch(clearServerMessage());
+
     const registerData: RegisterDto = {
       email: data.email.trim(),
       password: data.password,
@@ -117,9 +115,8 @@ const ClientRegistrationForm: React.FC = () => {
   };
 
   const togglePassword = () => setShowPassword((prev) => !prev);
-  const hasError = (field: keyof ClientFormData) => !!errors[field];
+  const hasError = (field: keyof ClientFormData) => !!errors[field]; // Валидация даты рождения (возраст от 16 до 100 лет)
 
-  // Валидация даты рождения (возраст от 16 до 100 лет)
   const validateAge = (value: string) => {
     if (!value) return 'Обязательное поле';
     const birthDate = new Date(value);
@@ -137,18 +134,25 @@ const ClientRegistrationForm: React.FC = () => {
     return true;
   };
 
+  // Определяем, было ли сообщение об успехе (для отображения плашки в форме)
+  // Используем флаг isRegisteredSuccess для гарантии
+  const isSuccess = isRegisteredSuccess;
+  // Определяем, было ли общее сообщение об ошибке (не связанное с полями)
+  const isServerError =
+    serverMessage.text && serverMessage.status && serverMessage.status >= 400;
+
   return (
     <div className='registration-form-wrapper'>
+           {' '}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className='registration-form client-form'
         noValidate
       >
-        <p className='form-title'>Регистрация клиента</p>
-
-        {/* Имя */}
+                <p className='form-title'>Регистрация клиента</p>       {' '}
+        {/* Имя */}       {' '}
         <div className='form-group'>
-          <label className='form-label'>Имя</label>
+                    <label className='form-label'>Имя</label>         {' '}
           <Controller
             name='firstName'
             control={control}
@@ -167,21 +171,22 @@ const ClientRegistrationForm: React.FC = () => {
                   hasError('firstName') ? 'input-error' : ''
                 }`}
                 placeholder='Анна'
-                disabled={isLoading}
-                autoCapitalize='none' // ОТКЛЮЧАЕТ АВТО-ЗАГЛАВНУЮ БУКВУ
-                autoComplete='given-name' // правильно подсказывает браузеру, что это имя
-                spellCheck={false} // дополнительно: отключает проверку орфографии
+                disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
+                autoCapitalize='none'
+                autoComplete='given-name'
+                spellCheck={false}
               />
             )}
           />
+                   {' '}
           {hasError('firstName') && (
             <p className='error-message'>{errors.firstName?.message}</p>
           )}
+                 {' '}
         </div>
-
-        {/* Фамилия */}
+                {/* Фамилия */}       {' '}
         <div className='form-group'>
-          <label className='form-label'>Фамилия</label>
+                    <label className='form-label'>Фамилия</label>         {' '}
           <Controller
             name='lastName'
             control={control}
@@ -200,20 +205,22 @@ const ClientRegistrationForm: React.FC = () => {
                   hasError('lastName') ? 'input-error' : ''
                 }`}
                 placeholder='Иванова'
-                disabled={isLoading}
-                autoCapitalize='none' // ГЛАВНОЕ — ЭТОТ АТРИБУТ
-                autoComplete='family-name' // правильный тип для фамилии
+                disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
+                autoCapitalize='none'
+                autoComplete='family-name'
                 spellCheck={false}
               />
             )}
           />
+                   {' '}
           {hasError('lastName') && (
             <p className='error-message'>{errors.lastName?.message}</p>
           )}
+                 {' '}
         </div>
-        {/* Телефон */}
+                {/* Телефон */}       {' '}
         <div className='form-group'>
-          <label className='form-label'>Телефон</label>
+                    <label className='form-label'>Телефон</label>         {' '}
           <Controller
             name='phone'
             control={control}
@@ -234,18 +241,19 @@ const ClientRegistrationForm: React.FC = () => {
                   hasError('phone') ? 'input-error' : ''
                 }`}
                 placeholder='+7 (999) 123-45-67'
-                disabled={isLoading}
+                disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
               />
             )}
           />
+                   {' '}
           {hasError('phone') && (
             <p className='error-message'>{errors.phone?.message}</p>
           )}
+                 {' '}
         </div>
-
-        {/* Email */}
+                {/* Email */}       {' '}
         <div className='form-group'>
-          <label className='form-label'>Email</label>
+                    <label className='form-label'>Email</label>         {' '}
           <Controller
             name='email'
             control={control}
@@ -258,18 +266,19 @@ const ClientRegistrationForm: React.FC = () => {
                   hasError('email') ? 'input-error' : ''
                 }`}
                 placeholder='anna@example.com'
-                disabled={isLoading}
+                disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
               />
             )}
           />
+                   {' '}
           {hasError('email') && (
             <p className='error-message'>{errors.email?.message}</p>
           )}
+                 {' '}
         </div>
-
-        {/* Пароль */}
+                {/* Пароль */}       {' '}
         <div className='form-group password-group'>
-          <label className='form-label'>Пароль</label>
+                    <label className='form-label'>Пароль</label>         {' '}
           <Controller
             name='password'
             control={control}
@@ -283,6 +292,7 @@ const ClientRegistrationForm: React.FC = () => {
             }}
             render={({ field }) => (
               <div className='password-input-container'>
+                               {' '}
                 <input
                   {...field}
                   type={showPassword ? 'text' : 'password'}
@@ -290,27 +300,30 @@ const ClientRegistrationForm: React.FC = () => {
                     hasError('password') ? 'input-error' : ''
                   }`}
                   autoComplete='new-password'
-                  disabled={isLoading}
+                  disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
                 />
+                               {' '}
                 <button
                   type='button'
                   className='password-toggle'
                   onClick={togglePassword}
-                  disabled={isLoading}
+                  disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
                 >
-                  {showPassword ? '🙈' : '🐵'}
+                                    {showPassword ? '🙈' : '🐵'}               {' '}
                 </button>
+                             {' '}
               </div>
             )}
           />
+                   {' '}
           {hasError('password') && (
             <p className='error-message'>{errors.password?.message}</p>
           )}
+                 {' '}
         </div>
-
-        {/* Дата рождения */}
+                {/* Дата рождения */}       {' '}
         <div className='form-group'>
-          <label className='form-label'>Дата рождения</label>
+                    <label className='form-label'>Дата рождения</label>         {' '}
           <Controller
             name='birthdate'
             control={control}
@@ -326,41 +339,42 @@ const ClientRegistrationForm: React.FC = () => {
                 className={`form-input ${
                   hasError('birthdate') ? 'input-error' : ''
                 }`}
-                disabled={isLoading}
+                disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
               />
             )}
           />
+                   {' '}
           {hasError('birthdate') && (
             <p className='error-message'>{errors.birthdate?.message}</p>
           )}
+                 {' '}
         </div>
-
-        {/* Сообщение от сервера */}
-        {serverMessage.text && (
+                {/* Сообщение от сервера */}       {' '}
+        {(isSuccess || isServerError) && ( // Отображаем либо успех, либо общую ошибку
           <div
-            className={`response-message ${
-              serverMessage.status &&
-              serverMessage.status >= 200 &&
-              serverMessage.status < 300
-                ? 'success'
-                : 'error'
-            }`}
+            className={`response-message ${isSuccess ? 'success' : 'error'}`}
           >
-            {serverMessage.text}
+                        {serverMessage.text}         {' '}
           </div>
         )}
-
-        <button type='submit' className='form-button' disabled={isLoading}>
-          {isLoading ? 'Создаём аккаунт...' : 'Зарегистрироваться'}
+               {' '}
+        <button
+          type='submit'
+          className='form-button'
+          // 💡 ИЗМЕНЕНО: Блокируем только при загрузке или успехе
+          disabled={!!(isLoading || isSuccess)}
+        >
+                   {' '}
+          {isLoading
+            ? 'Создаём аккаунт...'
+            : isSuccess
+            ? '✅ Успех'
+            : 'Зарегистрироваться'}
+                 {' '}
         </button>
-
-        <p className='login-link-container'>
-          Уже есть аккаунт?{' '}
-          <Link to='/login' className='login-link'>
-            Войти
-          </Link>
-        </p>
+             {' '}
       </form>
+         {' '}
     </div>
   );
 };

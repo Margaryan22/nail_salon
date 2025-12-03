@@ -410,13 +410,6 @@ const MasterRegistrationForm: React.FC = () => {
         <button type='submit' className='form-button' disabled={isLoading}>
           {isLoading ? 'Отправляем заявку...' : 'Стать мастером'}
         </button>
-
-        <p className='login-link-container'>
-          Уже есть аккаунт?{' '}
-          <Link to='/login' className='login-link'>
-            Войти
-          </Link>
-        </p>
       </form>
     </div>
   );

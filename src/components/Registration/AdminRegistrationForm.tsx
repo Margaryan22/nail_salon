@@ -306,12 +306,6 @@ const AdminRegistrationForm: React.FC = () => {
             ? 'Создание администратора...'
             : 'Зарегистрировать администратора'}
         </button>
-        <p className='login-link-container'>
-          Уже есть аккаунт?{' '}
-          <Link to='/login' className='login-link'>
-            Войти
-          </Link>
-        </p>
       </form>
     </div>
   );

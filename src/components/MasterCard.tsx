@@ -12,9 +12,8 @@ const MasterCard: React.FC<MasterCardProps> = ({ master }) => {
   const navigate = useNavigate(); // <<< Инициализация хука useNavigate
 
   // АПИ ВЕРНУЛ ТОЛЬКО ЭТИ ПОЛЯ. masterProfile ОТСУТСТВУЕТ.
-  const { id, firstName, lastName } = master; // <<< Добавил master.id для навигации
-  console.log('Master Data:', master);
-  const imageUrl = '/default-master-avatar.jpg'; // fallback
+  const { id, firstName, lastName } = master;
+  const imageUrl = ''; // fallback
 
   // Обработчик для кнопки "Записаться"
   const handleBookingClick = () => {

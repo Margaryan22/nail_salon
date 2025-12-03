@@ -14,7 +14,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   serverMessage: ServerMessage;
-  sessionStartTime: number | null;
+  sessionStartTime: number | null; // 🔑 ДОБАВЛЕНО: Флаг для успешной регистрации без автологина
+  isRegisteredSuccess: boolean;
 }
 
 // === ФУНКЦИЯ: проверка, жива ли сессия (меньше 7 дней) ===
@@ -58,15 +59,15 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false,
-  isLoading: true, // важно! пока грузим профиль — показываем лоадер
+  isLoading: true,
   serverMessage: { text: '', status: null },
-  sessionStartTime: null,
-  ...loadStateFromStorage(), // ← восстанавливаем токены и статус
+  sessionStartTime: null, // 🔑 ДОБАВЛЕНО: Инициализация нового флага
+  isRegisteredSuccess: false,
+  ...loadStateFromStorage(),
 };
 
 // === ASYNC THUNKS ===
 
-// Загрузка профиля (остается неизменным, интерцептор обработает 401)
 export const fetchMe = createAsyncThunk(
   'auth/me',
   async (_, { rejectWithValue }) => {
@@ -74,24 +75,18 @@ export const fetchMe = createAsyncThunk(
       const response = await api.get<User>('/users/me');
       return response.data;
     } catch (error: any) {
-      throw error; // Бросаем ошибку, чтобы её мог поймать initializeAuth или интерцептор
+      throw error;
     }
   }
 );
 
-// 🔑 ИСПРАВЛЕНИЕ: Инициализация, явно возвращаем rejectWithValue при отсутствии сессии
 export const initializeAuth = createAsyncThunk(
   'auth/initialize',
   async (_, { dispatch, rejectWithValue }) => {
     const token = localStorage.getItem('accessToken');
     if (token && isSessionAlive()) {
-      // Если токен есть — пробуем загрузить профиль.
-      // .unwrap() позволяет нам поймать ошибку, если fetchMe провалится
       return await dispatch(fetchMe()).unwrap();
     }
-    // Если токена нет или сессия истекла:
-    // 💡 ИСПРАВЛЕНИЕ: Явно возвращаем rejectWithValue, чтобы гарантировать,
-    // что Redux получит валидное REJECTED-действие, а не undefined.
     return rejectWithValue({
       text: 'No valid session',
       status: null,
@@ -125,7 +120,7 @@ export const register = createAsyncThunk(
   async (data: any, { rejectWithValue }) => {
     try {
       const response = await api.post<{
-        accessToken: string;
+        accessToken: string; // Сервер может вернуть токены, но мы их игнорируем
         refreshToken: string;
       }>('/auth/register', data);
       return response.data;
@@ -189,16 +184,17 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     clearServerMessage(state) {
-      state.serverMessage = { text: '', status: null };
+      state.serverMessage = { text: '', status: null }; // 🔑 ИЗМЕНЕНО: Сбрасываем флаг успеха при очистке сообщения
+      state.isRegisteredSuccess = false;
     },
     forceLogout(state) {
-      // Чистим состояние и локальное хранилище
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
       state.sessionStartTime = null;
-      state.isLoading = false;
+      state.isLoading = false; // 🔑 ИЗМЕНЕНО: Чистим флаг успеха при полном выходе
+      state.isRegisteredSuccess = false;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('sessionStart');
@@ -210,7 +206,7 @@ const authSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(initializeAuth.fulfilled, (state, action) => {
-        state.isLoading = false; // Здесь action.payload — это User, полученный из fetchMe
+        state.isLoading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
       })
@@ -218,11 +214,12 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = false;
         state.user = null;
-      }) // === LOGIN & REGISTER ===
+      }) // === LOGIN ===
 
       .addCase(login.pending, (state) => {
         state.isLoading = true;
-        state.serverMessage = { text: 'Входим...', status: null };
+        state.serverMessage = { text: 'Входим...', status: null }; // 🔑 ИЗМЕНЕНО: Сбрасываем флаг успеха при начале логина
+        state.isRegisteredSuccess = false;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -243,22 +240,29 @@ const authSlice = createSlice({
           text: 'Ошибка входа',
           status: 401,
         };
-      })
+      }) // === REGISTER (Ключевое изменение) ===
 
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = true;
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
-        state.sessionStartTime = Date.now();
-
-        localStorage.setItem('accessToken', action.payload.accessToken);
-        localStorage.setItem('refreshToken', action.payload.refreshToken);
-        localStorage.setItem('sessionStart', Date.now().toString());
-
-        state.serverMessage = { text: 'Регистрация успешна!', status: 201 };
+        state.isAuthenticated = false; // Нет автологина
+        state.accessToken = null;
+        state.refreshToken = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken'); // 🔑 ДОБАВЛЕНО: Устанавливаем флаг успешной регистрации
+        state.isRegisteredSuccess = true;
+        state.serverMessage = {
+          text: 'Аккаунт успешно зарегистрирован!',
+          status: 201,
+        };
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isRegisteredSuccess = false; // Сброс при ошибке
+        state.serverMessage = (action.payload as ServerMessage) ?? {
+          text: 'Ошибка регистрации',
+          status: 400,
+        };
       }) // === FETCH ME ===
-
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
@@ -271,35 +275,34 @@ const authSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(refreshTokens.rejected, (state) => {
-        // Полная очистка при провале refresh
         state.isAuthenticated = false;
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.sessionStartTime = null;
-        state.isLoading = false; // Локальное хранилище уже очищено внутри самого thunk refreshTokens
+        state.isLoading = false;
       }) // === LOGOUT — РАБОЧАЯ ВЕРСИЯ ===
 
       .addCase(logout.fulfilled, (state) => {
-        // Чистим состояние
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
         state.sessionStartTime = null;
-        state.isLoading = false; // Чистим локальное хранилище
+        state.isLoading = false;
+        state.isRegisteredSuccess = false; // Сброс флага успеха
 
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('sessionStart');
       })
       .addCase(logout.rejected, (state) => {
-        // Если сервер не ответил, мы все равно должны очистить локальное состояние
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
         state.sessionStartTime = null;
+        state.isRegisteredSuccess = false; // Сброс флага успеха
 
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
