@@ -24,9 +24,11 @@ interface ChooseDateState {
 const ChooseDatePage: React.FC = () => {
   const navigate = useNavigate();
   const { masterId } = useParams<{ masterId: string }>();
-  const location = useLocation(); // Деструктуризация и типизация полученного state
+  const location = useLocation();
+
   const { masterName, serviceName, serviceId, servicePrice, serviceDuration } =
-    (location.state as ChooseDateState) || {}; // Определяем критически важные данные
+    (location.state as ChooseDateState) || {};
+
   const requiredData = useMemo(
     () => ({
       masterId: masterId,
@@ -55,7 +57,6 @@ const ChooseDatePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null); // --- useEffect для загрузки слотов ---
 
   useEffect(() => {
-    // Сначала проверяем, что все критичные данные есть
     if (!isDataValid) {
       setError(
         'Критическая ошибка: не удалось получить полные данные услуги. Начните выбор заново.'
@@ -83,12 +84,11 @@ const ChooseDatePage: React.FC = () => {
     };
 
     fetchSlots();
-  }, [selectedDate, masterId, isDataValid]); // isDataValid добавлен в зависимости // --- Хелперы и хендлеры ---
+  }, [selectedDate, masterId, isDataValid]); // --- Хелперы и хендлеры ---
 
   const formatTime = (iso: string) => format(new Date(iso), 'HH:mm');
 
   const handleTimeClick = (slot: TimeSlot) => {
-    // Эту проверку мы проводим в useEffect, но для безопасности оставим
     if (!isDataValid || !selectedDate) {
       setError(
         'Ошибка: Недостаточно данных для перехода. Перезагрузите страницу.'
@@ -98,18 +98,24 @@ const ChooseDatePage: React.FC = () => {
 
     const timeLabel = formatTime(slot.startTime);
 
+    const appointmentData = {
+      masterName: masterName || 'Мастер',
+      serviceName: serviceName || 'Услуга',
+      serviceId: serviceId!,
+      servicePrice: servicePrice!,
+      serviceDuration: serviceDuration!,
+      masterId: masterId!,
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      timeLabel,
+    }; // 💡 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Принудительное сохранение в sessionStorage ПЕРЕД переходом.
+
+    sessionStorage.setItem(
+      'pendingAppointment',
+      JSON.stringify(appointmentData)
+    );
+
     navigate('/appointment/confirm', {
-      state: {
-        // Передаем все данные в одном объекте
-        masterName,
-        serviceName,
-        serviceId,
-        servicePrice,
-        serviceDuration,
-        masterId,
-        date: format(selectedDate, 'yyyy-MM-dd'), // Дата в формате YYYY-MM-DD
-        timeLabel, // Время в формате HH:MM
-      },
+      state: appointmentData, // Передаем через state, как запасной вариант.
     });
   };
 
@@ -124,7 +130,7 @@ const ChooseDatePage: React.FC = () => {
         key={date.toISOString()}
         className={`date-block ${isSelected ? 'selected' : ''}`}
         onClick={() => setSelectedDate(date)}
-        disabled={!isDataValid} // Деактивируем выбор даты, если нет данных
+        disabled={!isDataValid}
       >
                 <div className='day-number'>{dayNum}</div>       {' '}
         <div className='day-info'>
@@ -150,7 +156,7 @@ const ChooseDatePage: React.FC = () => {
           </p>
                    {' '}
           <button
-            className='primary-button' // 💡 РЕДИРЕКТ на начальную страницу выбора услуги
+            className='primary-button'
             onClick={() => navigate('/services', { replace: true })}
           >
                         Начать выбор заново          {' '}
@@ -168,16 +174,16 @@ const ChooseDatePage: React.FC = () => {
       <button onClick={() => navigate(-1)} className='back-button'>
                 ← Назад      {' '}
       </button>
-                   {' '}
+           {' '}
       <div className='page-header'>
                 <h1>Выберите дату и время</h1>       {' '}
         <p className='subtitle'>
-                    к {masterName || 'выбранному мастеру'} —{' '}
+                    к {masterName || 'выбранному мастеру'} —          {' '}
           {serviceName || 'выбранная услуга'}       {' '}
         </p>
              {' '}
       </div>
-                   {' '}
+           {' '}
       <div className='dates-container'>
                {' '}
         <div className='dates-grid'>
@@ -185,7 +191,7 @@ const ChooseDatePage: React.FC = () => {
         </div>
              {' '}
       </div>
-                   {' '}
+           {' '}
       {selectedDate && (
         <div className='time-section'>
                    {' '}
@@ -193,11 +199,10 @@ const ChooseDatePage: React.FC = () => {
                         {format(selectedDate, 'd MMMM, EEEE', { locale: ru })} 
                    {' '}
           </h2>
-                               {' '}
+                   {' '}
           {isLoadingSlots ? (
             <div className='loading'>Загрузка времени...</div>
           ) : error && !isDataValid ? (
-            // Показываем ошибку загрузки слотов, если нет ошибки данных
             <div className='error'>{error}</div>
           ) : slots.length === 0 ? (
             <p className='no-slots'>На этот день нет свободного времени</p>
