@@ -143,16 +143,16 @@ const ClientRegistrationForm: React.FC = () => {
 
   return (
     <div className='registration-form-wrapper'>
-           {' '}
+           
       <form
         onSubmit={handleSubmit(onSubmit)}
         className='registration-form client-form'
         noValidate
       >
-                <p className='form-title'>Регистрация клиента</p>       {' '}
-        {/* Имя */}       {' '}
+                <p className='form-title'>Регистрация клиента</p>       
+        {/* Имя */}       
         <div className='form-group'>
-                    <label className='form-label'>Имя</label>         {' '}
+                    <label className='form-label'>Имя</label>         
           <Controller
             name='firstName'
             control={control}
@@ -178,15 +178,15 @@ const ClientRegistrationForm: React.FC = () => {
               />
             )}
           />
-                   {' '}
+                   
           {hasError('firstName') && (
             <p className='error-message'>{errors.firstName?.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Фамилия */}       {' '}
+                {/* Фамилия */}       
         <div className='form-group'>
-                    <label className='form-label'>Фамилия</label>         {' '}
+                    <label className='form-label'>Фамилия</label>         
           <Controller
             name='lastName'
             control={control}
@@ -212,15 +212,15 @@ const ClientRegistrationForm: React.FC = () => {
               />
             )}
           />
-                   {' '}
+                   
           {hasError('lastName') && (
             <p className='error-message'>{errors.lastName?.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Телефон */}       {' '}
+                {/* Телефон */}       
         <div className='form-group'>
-                    <label className='form-label'>Телефон</label>         {' '}
+                    <label className='form-label'>Телефон</label>         
           <Controller
             name='phone'
             control={control}
@@ -245,15 +245,15 @@ const ClientRegistrationForm: React.FC = () => {
               />
             )}
           />
-                   {' '}
+                   
           {hasError('phone') && (
             <p className='error-message'>{errors.phone?.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Email */}       {' '}
+                {/* Email */}       
         <div className='form-group'>
-                    <label className='form-label'>Email</label>         {' '}
+                    <label className='form-label'>Email</label>         
           <Controller
             name='email'
             control={control}
@@ -270,15 +270,15 @@ const ClientRegistrationForm: React.FC = () => {
               />
             )}
           />
-                   {' '}
+                   
           {hasError('email') && (
             <p className='error-message'>{errors.email?.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Пароль */}       {' '}
+                {/* Пароль */}       
         <div className='form-group password-group'>
-                    <label className='form-label'>Пароль</label>         {' '}
+                    <label className='form-label'>Пароль</label>         
           <Controller
             name='password'
             control={control}
@@ -292,7 +292,7 @@ const ClientRegistrationForm: React.FC = () => {
             }}
             render={({ field }) => (
               <div className='password-input-container'>
-                               {' '}
+                               
                 <input
                   {...field}
                   type={showPassword ? 'text' : 'password'}
@@ -302,28 +302,28 @@ const ClientRegistrationForm: React.FC = () => {
                   autoComplete='new-password'
                   disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
                 />
-                               {' '}
+                               
                 <button
                   type='button'
                   className='password-toggle'
                   onClick={togglePassword}
                   disabled={isLoading || isSuccess} // Блокируем форму после успешной регистрации
                 >
-                                    {showPassword ? '🙈' : '🐵'}               {' '}
+                                    {showPassword ? '🙈' : '🐵'}               
                 </button>
-                             {' '}
+                             
               </div>
             )}
           />
-                   {' '}
+                   
           {hasError('password') && (
             <p className='error-message'>{errors.password?.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Дата рождения */}       {' '}
+                {/* Дата рождения */}       
         <div className='form-group'>
-                    <label className='form-label'>Дата рождения</label>         {' '}
+                    <label className='form-label'>Дата рождения</label>         
           <Controller
             name='birthdate'
             control={control}
@@ -343,38 +343,38 @@ const ClientRegistrationForm: React.FC = () => {
               />
             )}
           />
-                   {' '}
+                   
           {hasError('birthdate') && (
             <p className='error-message'>{errors.birthdate?.message}</p>
           )}
-                 {' '}
+                 
         </div>
-                {/* Сообщение от сервера */}       {' '}
+                {/* Сообщение от сервера */}       
         {(isSuccess || isServerError) && ( // Отображаем либо успех, либо общую ошибку
           <div
             className={`response-message ${isSuccess ? 'success' : 'error'}`}
           >
-                        {serverMessage.text}         {' '}
+                        {serverMessage.text}         
           </div>
         )}
-               {' '}
+               
         <button
           type='submit'
           className='form-button'
           // 💡 ИЗМЕНЕНО: Блокируем только при загрузке или успехе
           disabled={!!(isLoading || isSuccess)}
         >
-                   {' '}
+                   
           {isLoading
             ? 'Создаём аккаунт...'
             : isSuccess
             ? '✅ Успех'
             : 'Зарегистрироваться'}
-                 {' '}
+                 
         </button>
-             {' '}
+             
       </form>
-         {' '}
+         
     </div>
   );
 };

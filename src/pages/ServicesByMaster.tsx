@@ -85,13 +85,13 @@ const ServicesByMaster: React.FC = () => {
 
   return (
     <div className='services-by-master-container'>
-           {' '}
+           
       <button onClick={() => navigate(-1)} className='back-button'>
-                ← Назад      {' '}
+                ← Назад      
       </button>
-           {' '}
+           
       <h1 className='page-header'>Выберите услугу для записи к {masterName}</h1>
-           {' '}
+           
       {services.length > 0 ? (
         <ServiceList
           services={services}
@@ -100,10 +100,10 @@ const ServicesByMaster: React.FC = () => {
       ) : (
         <p className='no-services-message'>
                     К сожалению, у этого мастера пока нет доступных услуг.      
-           {' '}
+           
         </p>
       )}
-         {' '}
+         
     </div>
   );
 };

@@ -107,15 +107,21 @@ const ChooseDatePage: React.FC = () => {
       masterId: masterId!,
       date: format(selectedDate, 'yyyy-MM-dd'),
       timeLabel,
-    }; // 💡 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Принудительное сохранение в sessionStorage ПЕРЕД переходом.
+    }; // 💡 УЛУЧШЕНИЕ 1: Использование try/catch для сохранения
 
-    sessionStorage.setItem(
-      'pendingAppointment',
-      JSON.stringify(appointmentData)
-    );
+    try {
+      sessionStorage.setItem(
+        'pendingAppointment',
+        JSON.stringify(appointmentData)
+      );
+    } catch (e) {
+      console.error('Ошибка сохранения в sessionStorage:', e);
+      setError('Ошибка сохранения данных сессии. Попробуйте снова.');
+      return;
+    } // 💡 УЛУЧШЕНИЕ 2: Запускаем переход
 
     navigate('/appointment/confirm', {
-      state: appointmentData, // Передаем через state, как запасной вариант.
+      state: appointmentData,
     });
   };
 
@@ -132,12 +138,12 @@ const ChooseDatePage: React.FC = () => {
         onClick={() => setSelectedDate(date)}
         disabled={!isDataValid}
       >
-                <div className='day-number'>{dayNum}</div>       {' '}
+                <div className='day-number'>{dayNum}</div>       
         <div className='day-info'>
-                    <span className='weekday'>{weekdayShort}</span>         {' '}
-          <span className='month'>{monthShort}</span>       {' '}
+                    <span className='weekday'>{weekdayShort}</span>         
+          <span className='month'>{monthShort}</span>       
         </div>
-             {' '}
+             
       </button>
     );
   }; // --- Условный рендеринг для ошибок ---
@@ -145,61 +151,61 @@ const ChooseDatePage: React.FC = () => {
   if (!masterId || !isDataValid) {
     return (
       <div className='error-page-container'>
-               {' '}
+               
         <div className='error-box'>
-                    <h1>Ошибка выбора услуги</h1>         {' '}
+                    <h1>Ошибка выбора услуги</h1>         
           <p>
-                       {' '}
+                       
             {error ||
               'Не удалось получить данные о мастере или выбранной услуге.'}
-                     {' '}
+                     
           </p>
-                   {' '}
+                   
           <button
             className='primary-button'
             onClick={() => navigate('/services', { replace: true })}
           >
-                        Начать выбор заново          {' '}
+                        Начать выбор заново          
           </button>
-                 {' '}
+                 
         </div>
-             {' '}
+             
       </div>
     );
   } // --- Основной рендеринг ---
 
   return (
     <div className='choose-date-page'>
-           {' '}
+           
       <button onClick={() => navigate(-1)} className='back-button'>
-                ← Назад      {' '}
+                ← Назад      
       </button>
-           {' '}
+           
       <div className='page-header'>
-                <h1>Выберите дату и время</h1>       {' '}
+                <h1>Выберите дату и время</h1>       
         <p className='subtitle'>
-                    к {masterName || 'выбранному мастеру'} —          {' '}
-          {serviceName || 'выбранная услуга'}       {' '}
+                    к {masterName || 'выбранному мастеру'} —          
+          {serviceName || 'выбранная услуга'}       
         </p>
-             {' '}
+             
       </div>
-           {' '}
+           
       <div className='dates-container'>
-               {' '}
+               
         <div className='dates-grid'>
-                    {days.map((date) => formatDateBlock(date))}       {' '}
+                    {days.map((date) => formatDateBlock(date))}       
         </div>
-             {' '}
+             
       </div>
-           {' '}
+           
       {selectedDate && (
         <div className='time-section'>
-                   {' '}
+                   
           <h2 className='selected-date-title'>
                         {format(selectedDate, 'd MMMM, EEEE', { locale: ru })} 
-                   {' '}
+                   
           </h2>
-                   {' '}
+                   
           {isLoadingSlots ? (
             <div className='loading'>Загрузка времени...</div>
           ) : error && !isDataValid ? (
@@ -208,7 +214,7 @@ const ChooseDatePage: React.FC = () => {
             <p className='no-slots'>На этот день нет свободного времени</p>
           ) : (
             <div className='time-grid'>
-                           {' '}
+                           
               {slots
                 .filter((slot) => slot.available)
                 .map((slot) => (
@@ -218,16 +224,16 @@ const ChooseDatePage: React.FC = () => {
                     onClick={() => handleTimeClick(slot)}
                   >
                                         {formatTime(slot.startTime)}           
-                         {' '}
+                         
                   </button>
                 ))}
-                         {' '}
+                         
             </div>
           )}
-                 {' '}
+                 
         </div>
       )}
-         {' '}
+         
     </div>
   );
 };

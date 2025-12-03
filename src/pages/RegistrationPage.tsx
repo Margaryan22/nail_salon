@@ -47,14 +47,14 @@ const RegistrationPage: React.FC = () => {
   if (isRegistrationComplete) {
     return (
       <div className='registration-container'>
-               {' '}
+               
         <div className='registration-form success-message'>
-                   {' '}
+                   
           <h2 className='form-title'>✅ Аккаунт успешно зарегистрирован!</h2>   
                 <p>Сейчас вы будете перенаправлены на страницу входа...</p>     
-           {' '}
+           
         </div>
-             {' '}
+             
       </div>
     );
   }
@@ -62,56 +62,56 @@ const RegistrationPage: React.FC = () => {
   return (
     // ... (остальной JSX)
     <div className='registration-container'>
-           {' '}
+           
       <div className='registration-form'>
-                <h2 className='form-title'>Создать аккаунт🏃‍♂️</h2>               {' '}
+                <h2 className='form-title'>Создать аккаунт🏃‍♂️</h2>               
         <div className='role-tabs'>
-                   {' '}
+                   
           <button
             className={`tab-button ${
               activeForm === 'client' ? 'active-tab' : ''
             }`}
             onClick={() => setActiveForm('client')}
           >
-                        Клиент          {' '}
+                        Клиент          
           </button>
-                   {' '}
+                   
           <button
             className={`tab-button ${
               activeForm === 'master' ? 'active-tab' : ''
             }`}
             onClick={() => setActiveForm('master')}
           >
-                        Мастер          {' '}
+                        Мастер          
           </button>
-                   {' '}
+                   
           <button
             className={`tab-button ${
               activeForm === 'admin' ? 'active-tab' : ''
             }`}
             onClick={() => setActiveForm('admin')}
           >
-                        Администратор          {' '}
+                        Администратор          
           </button>
-                 {' '}
+                 
         </div>
-                       {' '}
+                       
         <div>
                     {activeForm === 'client' && <ClientRegistrationForm />}     
-              {activeForm === 'master' && <MasterRegistrationForm />}         {' '}
-          {activeForm === 'admin' && <AdminRegistrationForm />}       {' '}
+              {activeForm === 'master' && <MasterRegistrationForm />}         
+          {activeForm === 'admin' && <AdminRegistrationForm />}       
         </div>
-               {' '}
+               
         <p className='registration-link-note'>
-                    Уже есть аккаунт?          {' '}
+                    Уже есть аккаунт?          
           <span onClick={() => navigate('/login')} className='link-text'>
-                        Войти          {' '}
+                        Войти          
           </span>
-                 {' '}
+                 
         </p>
-             {' '}
+             
       </div>
-         {' '}
+         
     </div>
   );
 };

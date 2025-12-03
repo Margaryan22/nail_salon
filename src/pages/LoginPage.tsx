@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
 
           {/* Ссылка на регистрацию */}
           <p className='login-link-container'>
-            Нет аккаунта?{' '}
+            Нет аккаунта?
             <Link to='/registration' className='login-link'>
               Зарегистрироваться
             </Link>
