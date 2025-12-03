@@ -41,7 +41,8 @@ export const ENDPOINTS = {
     CLIENT: `${API_BASE_URL}/client`,
     DATE: `${API_BASE_URL}/appointments/date`,
     AVAILABILITY: `${API_BASE_URL}/appointments/availability`,
-    CREATE: `${API_BASE_URL}/appointments`,
+    AVAILABLE_SLOTS: (masterId: string | number) =>
+      `${API_BASE_URL}/appointments/master/${masterId}/available-slots`,
   },
   SCHEDULE: `${API_BASE_URL}/master_schedule`,
 } as const;

@@ -1,0 +1,192 @@
+// src/pages/ReadyAppointmentPage.scss
+
+@import '../variables';
+
+.ready-appointment-page {
+  padding: $spacing-unit * 3;
+  background-color: $color-light-gray;
+  min-height: 100vh;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: $color-primary-gray;
+  cursor: pointer;
+  margin-bottom: $spacing-unit * 2;
+}
+
+.appointment-card {
+  background: $color-white;
+  border-radius: $border-radius * 1.5;
+  padding: $spacing-unit * 3;
+  box-shadow: $box-shadow-main;
+  margin-bottom: $spacing-unit * 3;
+}
+
+.master-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-unit * 2;
+  margin-bottom: $spacing-unit * 2;
+
+  .avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: $color-medium-gray;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .master-role {
+    margin: 4px 0 0;
+    color: $color-medium-gray;
+    font-size: 14px;
+  }
+}
+
+.appointment-datetime {
+  display: flex;
+  align-items: center;
+  gap: $spacing-unit * 2;
+  font-size: 15px;
+  color: $color-primary-gray;
+
+  .calendar-icon {
+    width: 20px;
+    height: 20px;
+    background: $color-medium-gray;
+    border-radius: 4px;
+  }
+
+  .time-range {
+    margin-top: 4px;
+    color: $color-medium-gray;
+  }
+}
+
+.separator {
+  height: 1px;
+  background: $color-medium-gray;
+  margin: $spacing-unit * 3 0;
+}
+
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-unit * 2;
+
+  h4 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .duration {
+    margin: 4px 0 0;
+    color: $color-medium-gray;
+    font-size: 14px;
+  }
+  .price {
+    font-weight: 600;
+    font-size: 18px;
+  }
+}
+
+.cancellation-note {
+  display: flex;
+  align-items: center;
+  gap: $spacing-unit;
+  background: #fff8e1;
+  padding: $spacing-unit * 1.5;
+  border-radius: $border-radius;
+  font-size: 14px;
+  color: #ff6d00;
+
+  .cancel-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: #ff6d00;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 12px;
+  }
+
+  .details-link {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #ff6d00;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+  font-weight: 600;
+  margin: $spacing-unit * 4 0;
+}
+
+.terms-checkbox {
+  display: flex;
+  align-items: center;
+  gap: $spacing-unit;
+  font-size: 14px;
+  color: $color-primary-gray;
+  margin-bottom: $spacing-unit * 3;
+
+  input {
+    cursor: pointer;
+  }
+  span {
+    color: $color-error;
+  }
+}
+
+.confirm-button {
+  width: 100%;
+  padding: $spacing-unit * 2.5;
+  background-color: $color-dark-gray;
+  color: white;
+  border: none;
+  border-radius: $border-radius;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: $color-hover-gray;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.success-message {
+  text-align: center;
+  padding: $spacing-unit * 3;
+  background: $color-success;
+  color: white;
+  border-radius: $border-radius;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.error-message {
+  margin-top: $spacing-unit * 2;
+  color: $color-error;
+  text-align: center;
+}

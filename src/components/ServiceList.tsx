@@ -1,18 +1,21 @@
 // src/components/ServiceList/ServiceList.tsx
 
 import React from 'react';
-import type { Service } from '../types/userTypes';
-
+import type { Service } from '../types/userTypes'; // ← подправь путь, если нужно
 import ServiceItem from './ServiceItem';
 
 export interface ServiceListProps {
-  services: Service[]; // ← обязательно передаём!
-  initialDisplayCount?: number; // ← сколько показать
+  services: Service[];
+  initialDisplayCount?: number;
+
+  // ← НОВЫЙ ОПЦИОНАЛЬНЫЙ ПРОПС
+  onServiceSelect?: (service: Service) => void;
 }
 
 const ServiceList: React.FC<ServiceListProps> = ({
   services,
   initialDisplayCount,
+  onServiceSelect, // ← принимаем
 }) => {
   const displayedServices = initialDisplayCount
     ? services.slice(0, initialDisplayCount)
@@ -28,7 +31,14 @@ const ServiceList: React.FC<ServiceListProps> = ({
 
       <div className='service-items-container'>
         {displayedServices.map((service) => (
-          <ServiceItem key={service.serviceId} service={service} />
+          <ServiceItem
+            key={service.serviceId}
+            service={service}
+            // ← передаём клик только если он есть
+            onClick={
+              onServiceSelect ? () => onServiceSelect(service) : undefined
+            }
+          />
         ))}
       </div>
 

@@ -1,5 +1,3 @@
-// src/components/MasterList/MasterList.tsx
-
 import React, { useRef } from 'react';
 import type { MasterCardType } from '../types/userTypes';
 

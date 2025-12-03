@@ -1,37 +1,32 @@
 // src/App.tsx
 
-import React, { useEffect } from 'react'; // Добавлен useEffect для логики восстановления сессии
+import React, { useEffect } from 'react';
 import './scss/app.scss';
 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from './hooks'; // ← обязательно должен быть
-import { fetchMe } from './redux/authSlice'; // Импорт fetchMe для восстановления сессии
+import { useAppDispatch, useAppSelector } from './hooks';
+import { initializeAuth } from './redux/authSlice'; // ← заменили fetchMe на initializeAuth
 
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import ServiceCatalogPage from './pages/ServiceCatalogPage';
 import UserAccountPage from './pages/UserAccountPage';
-import ServicesByMaster from './pages/ServicesByMaster'; // <<< ИМПОРТ НОВОГО КОМПОНЕНТА
+import ServicesByMaster from './pages/ServicesByMaster';
+import ChooseDatePage from './pages/ChooseDatePage';
+import ReadyAppointmentPage from './pages/ReadyAppointmentPage';
 
 const App: React.FC = () => {
-  const dispatch = useAppDispatch(); // Добавлен dispatch
-  const { accessToken, isAuthenticated, isLoading } = useAppSelector(
-    (state) => state.auth
-  );
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
   const location = useLocation();
 
-  // >>> ЛОГИКА ВОССТАНОВЛЕНИЯ СЕССИИ ПРИ ЗАГРУЗКЕ <<<
+  // НОВАЯ ЛОГИКА: один раз при загрузке приложения
   useEffect(() => {
-    // Проверяем, есть ли токен в состоянии (загружен из localStorage) и пользователь не авторизован
-    if (accessToken && !isAuthenticated) {
-      // Пытаемся получить профиль, чтобы подтвердить токен
-      dispatch(fetchMe());
-    }
-  }, [accessToken, isAuthenticated, dispatch]);
-  // >>> КОНЕЦ ЛОГИКИ ВОССТАНОВЛЕНИЯ СЕССИИ <<<
+    dispatch(initializeAuth());
+  }, [dispatch]); // ← только dispatch в зависимостях
 
-  // Пока идёт любая загрузка — показываем минимальный лоадер (или ничего)
+  // Пока идёт инициализация (проверка токена + fetchMe) — показываем лоадер
   if (isLoading) {
     return (
       <div className='app-container'>
@@ -51,11 +46,11 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Публичные страницы — доступны всегда */}
+        {/* Публичные страницы */}
         <Route path='/login' element={<LoginPage />} />
         <Route path='/registration' element={<RegistrationPage />} />
 
-        {/* ЗАЩИЩЁННЫЕ страницы — только для авторизованных */}
+        {/* ЗАЩИЩЁННЫЕ страницы */}
         <Route
           path='/profile'
           element={
@@ -78,9 +73,10 @@ const App: React.FC = () => {
           }
         />
 
-        {/* <<< НОВЫЙ ЗАЩИЩЕННЫЙ МАРШРУТ: Выбор услуг мастера */}
+        <Route path='/choose-date/:masterId' element={<ChooseDatePage />} />
+
         <Route
-          path='/services-by-master/:masterId' // ← теперь совпадает с navigate()
+          path='/services-by-master/:masterId'
           element={
             isAuthenticated ? (
               <ServicesByMaster />
@@ -89,7 +85,8 @@ const App: React.FC = () => {
             )
           }
         />
-        {/* КОНЕЦ НОВОГО МАРШРУТА >>> */}
+
+        <Route path='/appointment/confirm' element={<ReadyAppointmentPage />} />
 
         <Route
           path='/account'
@@ -102,7 +99,7 @@ const App: React.FC = () => {
           }
         />
 
-        {/* 404 — кидаем на логин или главную */}
+        {/* 404 */}
         <Route
           path='*'
           element={

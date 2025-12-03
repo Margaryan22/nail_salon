@@ -2,9 +2,13 @@
 @import '../variables';
 
 .master-card {
-  min-width: 200px; // Минимальная ширина, чтобы карточки не были слишком узкими
+  // Минимальная ширина для предотвращения сжатия и установка ширины
+  // Примечание: width: 20% + margin/padding может давать 4 карточки на 1024px+,
+  // но может потребоваться настройка с помощью @media для идеального отображения.
+  min-width: 200px;
   width: 20%;
-  flex-shrink: 0; // Не сжимать при flex-wrap/overflow
+  flex-shrink: 0;
+
   padding: $spacing-unit * 2;
   border: 1px solid $color-medium-gray;
   border-radius: $border-radius;
@@ -23,7 +27,7 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: $color-light-gray; // Заглушка
+  background-color: $color-light-gray;
   background-size: cover;
   background-position: center;
   border: 2px solid $color-white;
@@ -31,25 +35,28 @@
 }
 
 .master-info {
+  // 💡 ИСПРАВЛЕНИЕ: Принудительное расположение элементов в колонку (друг под другом)
+  display: flex;
+  flex-direction: column;
+  align-items: center; // Центрирование элементов (имени, специализации, кнопки) по горизонтали
+
   .master-name {
     font-size: 1em;
     font-weight: 600;
     color: $color-primary-gray;
+    // Убедитесь, что отступы обеспечивают нужное расстояние:
     margin: $spacing-unit 0;
-    // Для обрезки длинного имени, как на скрине
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    // Стили обрезки удалены — это правильно.
   }
 
-  .master-rank {
+  // 💡 ИСПРАВЛЕНИЕ: Класс .master-rank заменен на .master-specialization
+  .master-specialization {
     font-size: 0.9em;
     color: $color-primary-gray;
     opacity: 0.7;
-    margin-bottom: $spacing-unit * 2;
+    margin-bottom: $spacing-unit * 1.2;
   }
 }
-
 .master-rating {
   color: $color-star-yellow;
   margin-bottom: $spacing-unit * 2;

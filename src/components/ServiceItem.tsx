@@ -1,14 +1,15 @@
 // src/components/ServiceList/ServiceItem.tsx
 
 import React from 'react';
-import type { Service } from '../types/userTypes';
+import type { Service } from '../types/userTypes'; // ← подправь путь, если нужно
 
+// ← Обновлённый интерфейс с onClick
 interface ServiceItemProps {
   service: Service;
+  onClick?: () => void; // ← теперь поддерживается!
 }
 
-const ServiceItem: React.FC<ServiceItemProps> = ({ service }) => {
-  // Деструктурируем с дефолтными значениями — это спасает от null/undefined
+const ServiceItem: React.FC<ServiceItemProps> = ({ service, onClick }) => {
   const {
     name = 'Без названия',
     categoryName = 'Без категории',
@@ -17,12 +18,17 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ service }) => {
     imageUrl,
   } = service;
 
-  // На всякий случай принудительно приводим к числу (если вдруг строка "2500")
   const price = Number(basePrice) || 0;
   const duration = Number(baseDuration) || 0;
 
+  const isClickable = !!onClick;
+
   return (
-    <div className='service-item'>
+    <div
+      className={`service-item ${isClickable ? 'clickable' : ''}`}
+      onClick={onClick}
+      style={isClickable ? { cursor: 'pointer' } : undefined}
+    >
       <div className='service-info-left'>
         <div className='service-image-container'>
           <div
@@ -45,7 +51,18 @@ const ServiceItem: React.FC<ServiceItemProps> = ({ service }) => {
           <p className='service-duration'>{duration} мин.</p>
         </div>
 
-        <button className='book-service-button'>Записаться</button>
+        {/* Кнопка "Записаться" — только если можно кликнуть */}
+        {isClickable && (
+          <button
+            className='book-service-button'
+            onClick={(e) => {
+              e.stopPropagation(); // ← предотвращаем двойной клик
+              onClick?.();
+            }}
+          >
+            Записаться
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.tsx
 import React, { useEffect, useState } from 'react';
 import { publicApi, ENDPOINTS, api } from '../api';
 import { useNavigate } from 'react-router-dom';

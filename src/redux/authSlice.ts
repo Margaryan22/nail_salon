@@ -1,5 +1,3 @@
-// src/redux/authSlice.ts
-
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { api } from '../api';
 import type { User } from '../types/userTypes';
@@ -9,121 +7,136 @@ interface ServerMessage {
   status: number | null;
 }
 
-// Это будет хранить ПОЛНЫЙ оригинальный ответ от сервера
-interface RawServerResponse {
-  data: any;
-  status: number;
-  headers?: Record<string, string>;
-  timestamp: string;
-}
-
-interface RawServerError {
-  error: any;
-  status?: number;
-  timestamp: string;
-}
-
-interface AuthLoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  userId: number;
-  email: string;
-  role: 'CLIENT' | 'MASTER' | 'ADMIN';
-}
-
 export interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-
-  // Для пользователя (можно чистить)
   serverMessage: ServerMessage;
-
-  // ПОЛНЫЙ оригинальный ответ от сервера — ВСЕГДА видим!
-  lastServerResponse: RawServerResponse | null;
-
-  // Полная ошибка от сервера — тоже ВСЕГДА видим!
-  lastServerError: RawServerError | null;
+  sessionStartTime: number | null;
 }
 
-// >>> ИЗМЕНЕНИЯ ЗДЕСЬ: Загружаем токены при инициализации
-const initialAccessToken = localStorage.getItem('accessToken');
-const initialRefreshToken = localStorage.getItem('refreshToken');
+// === ФУНКЦИЯ: проверка, жива ли сессия (меньше 7 дней) ===
+const isSessionAlive = (): boolean => {
+  const sessionStart = localStorage.getItem('sessionStart');
+  if (!sessionStart) return false;
+
+  const daysPassed =
+    (Date.now() - Number(sessionStart)) / (1000 * 60 * 60 * 24);
+  return daysPassed <= 7;
+};
+
+// === Инициализация состояния из localStorage ===
+const loadStateFromStorage = (): Partial<AuthState> => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const sessionStart = localStorage.getItem('sessionStart');
+
+    if (accessToken && refreshToken && sessionStart && isSessionAlive()) {
+      return {
+        accessToken,
+        refreshToken,
+        sessionStartTime: Number(sessionStart),
+        isAuthenticated: true,
+      };
+    } else {
+      // Если больше 7 дней — чистим всё
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('sessionStart');
+      return {};
+    }
+  } catch (err) {
+    return {};
+  }
+};
 
 const initialState: AuthState = {
   user: null,
-  accessToken: initialAccessToken, // Токен из localStorage
-  refreshToken: initialRefreshToken, // Refresh-токен из localStorage
-  // Аутентификация считается пройденной, если токен найден
-  isAuthenticated: !!initialAccessToken,
-  isLoading: false,
+  accessToken: null,
+  refreshToken: null,
+  isAuthenticated: false,
+  isLoading: true, // важно! пока грузим профиль — показываем лоадер
   serverMessage: { text: '', status: null },
-  lastServerResponse: null,
-  lastServerError: null,
+  sessionStartTime: null,
+  ...loadStateFromStorage(), // ← восстанавливаем токены и статус
 };
-// <<< КОНЕЦ ИЗМЕНЕНИЙ
 
-// === THUNKS ===
-export const login = createAsyncThunk<
-  AuthLoginResponse,
-  { email: string; password: string },
-  { rejectValue: ServerMessage }
->('auth/login', async (credentials, { rejectWithValue }) => {
-  try {
-    const response = await api.post<AuthLoginResponse>(
-      '/auth/login',
-      credentials
-    );
-    return response.data;
-  } catch (error: any) {
-    return rejectWithValue({
-      text: error.response?.data?.message || 'Неверный email или пароль',
-      status: error.response?.status || 403,
-    });
-  }
-});
+// === ASYNC THUNKS ===
 
-export const register = createAsyncThunk<
-  AuthLoginResponse,
-  {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string | null;
-    phone: string;
-    role: 'CLIENT' | 'MASTER' | 'ADMIN';
-    permissionsLevel?: number;
-  },
-  { rejectValue: ServerMessage }
->('auth/register', async (data, { rejectWithValue }) => {
-  try {
-    const response = await api.post<AuthLoginResponse>('/auth/register', data);
-    return response.data;
-  } catch (error: any) {
-    return rejectWithValue({
-      text: error.response?.data?.message || 'Ошибка регистрации',
-      status: error.response?.status || 400,
-    });
+// Загрузка профиля (остается неизменным, интерцептор обработает 401)
+export const fetchMe = createAsyncThunk(
+  'auth/me',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get<User>('/users/me');
+      return response.data;
+    } catch (error: any) {
+      throw error; // Бросаем ошибку, чтобы её мог поймать initializeAuth или интерцептор
+    }
   }
-});
+);
 
-export const fetchMe = createAsyncThunk<
-  User,
-  void,
-  { rejectValue: ServerMessage }
->('auth/me', async (_, { rejectWithValue }) => {
-  try {
-    const response = await api.get<User>('/users/me');
-    return response.data;
-  } catch (error: any) {
+// 🔑 ИСПРАВЛЕНИЕ: Инициализация, явно возвращаем rejectWithValue при отсутствии сессии
+export const initializeAuth = createAsyncThunk(
+  'auth/initialize',
+  async (_, { dispatch, rejectWithValue }) => {
+    const token = localStorage.getItem('accessToken');
+    if (token && isSessionAlive()) {
+      // Если токен есть — пробуем загрузить профиль.
+      // .unwrap() позволяет нам поймать ошибку, если fetchMe провалится
+      return await dispatch(fetchMe()).unwrap();
+    }
+    // Если токена нет или сессия истекла:
+    // 💡 ИСПРАВЛЕНИЕ: Явно возвращаем rejectWithValue, чтобы гарантировать,
+    // что Redux получит валидное REJECTED-действие, а не undefined.
     return rejectWithValue({
-      text: 'Не удалось загрузить профиль',
-      status: error.response?.status || 401,
-    });
+      text: 'No valid session',
+      status: null,
+    } as ServerMessage);
   }
-});
+);
+
+export const login = createAsyncThunk(
+  'auth/login',
+  async (
+    credentials: { email: string; password: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await api.post<{
+        accessToken: string;
+        refreshToken: string;
+      }>('/auth/login', credentials);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue({
+        text: error.response?.data?.message || 'Неверный email или пароль',
+        status: error.response?.status || 401,
+      } as ServerMessage);
+    }
+  }
+);
+
+export const register = createAsyncThunk(
+  'auth/register',
+  async (data: any, { rejectWithValue }) => {
+    try {
+      const response = await api.post<{
+        accessToken: string;
+        refreshToken: string;
+      }>('/auth/register', data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue({
+        text: error.response?.data?.message || 'Ошибка регистрации',
+        status: error.response?.status || 400,
+      } as ServerMessage);
+    }
+  }
+);
 
 export const logout = createAsyncThunk('auth/logout', async () => {
   try {
@@ -133,47 +146,80 @@ export const logout = createAsyncThunk('auth/logout', async () => {
   }
 });
 
+export const refreshTokens = createAsyncThunk(
+  'auth/refreshTokens',
+  async (_, { rejectWithValue }) => {
+    try {
+      const currentRefreshToken = localStorage.getItem('refreshToken');
+      if (!currentRefreshToken || !isSessionAlive()) {
+        throw new Error('Session expired');
+      }
+
+      const response = await api.post<{
+        accessToken: string;
+        refreshToken?: string;
+      }>('/auth/refresh-token', {
+        refreshToken: currentRefreshToken,
+      });
+
+      const newAccessToken = response.data.accessToken;
+      const newRefreshToken = response.data.refreshToken ?? currentRefreshToken;
+
+      localStorage.setItem('accessToken', newAccessToken);
+      localStorage.setItem('refreshToken', newRefreshToken);
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+      // При неудачном рефреше очищаем всё
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('sessionStart');
+      return rejectWithValue({
+        text: 'Сессия истекла, требуется повторный вход',
+        status: 401,
+      } as ServerMessage);
+    }
+  }
+);
+
 // === SLICE ===
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Очищает ТОЛЬКО красивое сообщение для пользователя
-    clearServerMessage: (state) => {
+    clearServerMessage(state) {
       state.serverMessage = { text: '', status: null };
     },
-    // При желании — можно добавить полную очистку логов (но редко нужно)
-    clearServerLogs: (state) => {
-      state.lastServerResponse = null;
-      state.lastServerError = null;
+    forceLogout(state) {
+      // Чистим состояние и локальное хранилище
+      state.user = null;
+      state.accessToken = null;
+      state.refreshToken = null;
+      state.isAuthenticated = false;
+      state.sessionStartTime = null;
+      state.isLoading = false;
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('sessionStart');
     },
   },
   extraReducers: (builder) => {
-    const captureResponse = (
-      state: AuthState,
-      action: any,
-      successMessage: string,
-      successStatus = 200
-    ) => {
-      state.lastServerResponse = {
-        data: action.payload,
-        status: action.meta?.arg?.status || successStatus,
-        headers: action.meta?.response?.headers,
-        timestamp: new Date().toISOString(),
-      };
-      state.serverMessage = { text: successMessage, status: successStatus };
-    };
+    builder // === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ ===
+      .addCase(initializeAuth.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(initializeAuth.fulfilled, (state, action) => {
+        state.isLoading = false; // Здесь action.payload — это User, полученный из fetchMe
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+      }) // === LOGIN & REGISTER ===
 
-    const captureError = (state: AuthState, action: any) => {
-      state.lastServerError = {
-        error: action.payload || action.error,
-        status: action.payload?.status || action.error?.response?.status,
-        timestamp: new Date().toISOString(),
-      };
-    };
-
-    builder
-      // === LOGIN ===
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.serverMessage = { text: 'Входим...', status: null };
@@ -183,76 +229,84 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
-        // Сохраняем токены
+        state.sessionStartTime = Date.now();
+
         localStorage.setItem('accessToken', action.payload.accessToken);
         localStorage.setItem('refreshToken', action.payload.refreshToken);
+        localStorage.setItem('sessionStart', Date.now().toString());
 
-        captureResponse(state, action, 'Успешный вход!', 200);
+        state.serverMessage = { text: 'Добро пожаловать!', status: 200 };
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.serverMessage = action.payload ?? {
+        state.serverMessage = (action.payload as ServerMessage) ?? {
           text: 'Ошибка входа',
-          status: 500,
+          status: 401,
         };
-        captureError(state, action);
       })
 
-      // === REGISTER ===
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
-        state.serverMessage = { text: 'Регистрируем...', status: null };
-      })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
-        // Сохраняем токены
+        state.sessionStartTime = Date.now();
+
         localStorage.setItem('accessToken', action.payload.accessToken);
         localStorage.setItem('refreshToken', action.payload.refreshToken);
+        localStorage.setItem('sessionStart', Date.now().toString());
 
-        captureResponse(state, action, 'Регистрация успешна!', 201);
-      })
-      .addCase(register.rejected, (state, action) => {
-        state.isLoading = false;
-        state.serverMessage = action.payload ?? {
-          text: 'Ошибка регистрации',
-          status: 500,
-        };
-        captureError(state, action);
-      })
+        state.serverMessage = { text: 'Регистрация успешна!', status: 201 };
+      }) // === FETCH ME ===
 
-      // === FETCH ME ===
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
-        captureResponse(state, action, 'Профиль загружен', 200);
-      })
-      .addCase(fetchMe.rejected, (state, action) => {
-        // Если токен невалиден, чистим состояние и хранилище
-        state.user = null;
-        state.accessToken = null;
-        state.refreshToken = null;
-        state.isAuthenticated = false;
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        captureError(state, action);
-      })
+      }) // === REFRESH TOKENS ===
 
-      // === LOGOUT ===
+      .addCase(refreshTokens.fulfilled, (state, action) => {
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = true;
+        state.isLoading = false;
+      })
+      .addCase(refreshTokens.rejected, (state) => {
+        // Полная очистка при провале refresh
+        state.isAuthenticated = false;
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.sessionStartTime = null;
+        state.isLoading = false; // Локальное хранилище уже очищено внутри самого thunk refreshTokens
+      }) // === LOGOUT — РАБОЧАЯ ВЕРСИЯ ===
+
       .addCase(logout.fulfilled, (state) => {
+        // Чистим состояние
         state.user = null;
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
-        // Чистим хранилище при явном выходе
+        state.sessionStartTime = null;
+        state.isLoading = false; // Чистим локальное хранилище
+
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        state.serverMessage = { text: 'Выход выполнен', status: 200 };
+        localStorage.removeItem('sessionStart');
+      })
+      .addCase(logout.rejected, (state) => {
+        // Если сервер не ответил, мы все равно должны очистить локальное состояние
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+        state.sessionStartTime = null;
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('sessionStart');
       });
   },
 });
 
-export const { clearServerMessage, clearServerLogs } = authSlice.actions;
+export const { clearServerMessage, forceLogout } = authSlice.actions;
 export default authSlice.reducer;
